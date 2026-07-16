@@ -5,9 +5,13 @@
 
   1. Automatically, when the user's OS prefers dark (`prefers-color-scheme`).
   2. Manually, when you set `data-theme="dark"` on <html> from a toggle.
+     A `.dark` class is accepted as an equivalent manual trigger too, since
+     that's the convention shadcn/ui's generated components assume for their
+     own `dark:` Tailwind variants.
 
-  A manual choice always wins: `data-theme="light"` forces light even on a
-  dark OS, and `data-theme="dark"` forces dark even on a light OS.
+  A manual choice always wins: `data-theme="light"` (or a `.light` class)
+  forces light even on a dark OS, and `data-theme="dark"` (or `.dark`)
+  forces dark even on a light OS.
 
   To avoid a flash of the wrong theme, set `data-theme` from a small inline
   script in <head> (reading the saved preference) before the first paint.
@@ -100,7 +104,7 @@
 /* Dark mode: cool graphite (primary showcase; the preview uses it).
    Block 1 of 2: follows the OS unless the user has forced light. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
+  :root:not([data-theme='light']):not(.light) {
     color-scheme: dark;
 
     --color-bg-primary: #0a0d13;
@@ -135,9 +139,10 @@
   }
 }
 
-/* Dark mode, Block 2 of 2: a manual toggle setting data-theme="dark",
-   which overrides the OS setting. Keep these values in sync with Block 1. */
-:root[data-theme='dark'] {
+/* Dark mode, Block 2 of 2: a manual toggle setting data-theme="dark" (or a
+   .dark class), which overrides the OS setting. Keep in sync with Block 1. */
+:root[data-theme='dark'],
+:root.dark {
   color-scheme: dark;
 
   --color-bg-primary: #0a0d13;

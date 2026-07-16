@@ -1,5 +1,9 @@
 @import "tailwindcss";
 @import "./tokens.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-bg-primary: var(--color-bg-primary);
@@ -39,6 +43,37 @@
   --container-content: var(--content-max-width);
   --container-detail: var(--detail-pane-width);
   --container-page: var(--page-max-width);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  /* radius-sm/md/lg/xl are defined once, below, in the plain @theme block
+     that mirrors tokens.css — no need for shadcn's calc()-derived scale. */
 }
 
 @theme {
@@ -73,4 +108,66 @@
   --radius-lg: 0.625rem;
   --radius-xl: 0.875rem;
   --radius-full: 9999px;
+}
+
+/*
+  shadcn's components read this semantic variable set (--background,
+  --primary, --border, etc.), not our raw --color-* tokens directly. Each one
+  is aliased to a brand-kit token below instead of shadcn's default neutral
+  palette, so every component (present and future) renders in our colors.
+  A single block is enough: var() references resolve against whatever
+  --color-* currently cascades to at that element, so light/OS-dark/manual
+  overrides in tokens.css propagate here automatically — no separate .dark
+  block needed.
+*/
+:root {
+  --background: var(--color-bg-primary);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent);
+  --primary-foreground: #fff;
+  --secondary: var(--color-bg-tertiary);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-bg-secondary);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-accent-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-focus);
+  --radius: var(--radius-lg);
+
+  /* Chart colors aren't defined in the brand kit yet; shadcn's defaults are
+     placeholders here until the Phase 10 data-visualization differentiator
+     picks real ones. */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  --sidebar: var(--color-bg-secondary);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--color-accent);
+  --sidebar-primary-foreground: #fff;
+  --sidebar-accent: var(--color-accent-subtle);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--color-focus);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

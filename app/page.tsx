@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
   return (
     <div className="flex flex-1 items-center justify-center bg-bg-primary p-8">
@@ -21,9 +23,7 @@ export default function Home() {
           </span>
         </div>
 
-        <button className="mt-6 w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover">
-          Settle up
-        </button>
+        <Button className="mt-6 w-full">Settle up</Button>
       </div>
     </div>
   );
