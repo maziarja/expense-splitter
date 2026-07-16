@@ -49,5 +49,9 @@ pnpm-debug.log*
 # Test
 coverage/
 
+# Vercel
+.vercel
+
 # Misc
 *.tsbuildinfo
+next-env.d.ts
