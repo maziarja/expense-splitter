@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+bun.lock
+*.tsbuildinfo
+next-env.d.ts
+
+# Challenge reference files: kept as shipped, not part of our solution
+spec/
+guidance/
+starter/
+AGENTS.md
+README-template.md
+README.md
+data/sample-groups.json
+data/README.md

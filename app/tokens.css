@@ -51,7 +51,7 @@
   --color-focus: #2a62d6;
 
   --font-sans: var(--font-manrope), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-ibm-plex-mono), ui-monospace, 'SF Mono', monospace;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, "SF Mono", monospace;
 
   --text-xs: 0.6875rem;
   --text-sm: 0.8125rem;
@@ -92,8 +92,11 @@
   --radius-full: 9999px;
 
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgba(15, 23, 42, 0.08),
+    0 4px 6px -4px rgba(15, 23, 42, 0.04);
 
   --sidebar-width: 16rem;
   --content-max-width: 42rem;
@@ -104,7 +107,7 @@
 /* Dark mode: cool graphite (primary showcase; the preview uses it).
    Block 1 of 2: follows the OS unless the user has forced light. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not(.light) {
+  :root:not([data-theme="light"]):not(.light) {
     color-scheme: dark;
 
     --color-bg-primary: #0a0d13;
@@ -134,14 +137,16 @@
     --color-focus: #5b8def;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+    --shadow-md:
+      0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg:
+      0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
   }
 }
 
 /* Dark mode, Block 2 of 2: a manual toggle setting data-theme="dark" (or a
    .dark class), which overrides the OS setting. Keep in sync with Block 1. */
-:root[data-theme='dark'],
+:root[data-theme="dark"],
 :root.dark {
   color-scheme: dark;
 
@@ -172,6 +177,8 @@
   --color-focus: #5b8def;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
 }
