@@ -25,7 +25,23 @@ export type MemberBalance = {
   // In the group's default currency. Positive: owed money. Negative: owes
   // money. Matches spec wording exactly: "total they paid - total they owe."
   netBalance: number;
+  // True if netBalance is within one minor unit of zero — a rounding
+  // residual from currency conversion, not a real debt. netBalance itself
+  // is left as the raw computed value rather than zeroed out, so exact
+  // figures stay inspectable; callers use isSettled to decide what to show.
+  isSettled: boolean;
 };
+
+// A balance within one minor unit of zero (1 cent for most currencies, 1
+// yen for JPY) is a rounding residual, not real money owed — the spec
+// calls this out explicitly ("rounding errors can leave residual balances
+// of $0.01 or less... a threshold below which a balance is treated as
+// zero"). Operates on integer minor units, not the converted decimal, to
+// avoid float-comparison issues entirely rather than needing a tolerance.
+const NEGLIGIBLE_BALANCE_MINOR_UNITS = 1;
+function isNegligibleMinorUnits(minorUnits: number): boolean {
+  return Math.abs(minorUnits) <= NEGLIGIBLE_BALANCE_MINOR_UNITS;
+}
 
 export type SettlementSuggestion = {
   from: string; // owes
@@ -123,10 +139,14 @@ export function calculateBalances({
     addDebt(settlement.from, settlement.to, -minorUnits);
   }
 
-  const memberBalances: MemberBalance[] = memberIds.map((memberId) => ({
-    memberId,
-    netBalance: fromMinorUnits(netMinorUnits.get(memberId) ?? 0, groupCurrency),
-  }));
+  const memberBalances: MemberBalance[] = memberIds.map((memberId) => {
+    const minorUnits = netMinorUnits.get(memberId) ?? 0;
+    return {
+      memberId,
+      netBalance: fromMinorUnits(minorUnits, groupCurrency),
+      isSettled: isNegligibleMinorUnits(minorUnits),
+    };
+  });
 
   const allLedgerIds = new Set<string>(memberIds);
   for (const [debtor, row] of owedBy) {
@@ -143,6 +163,7 @@ export function calculateBalances({
       const aOwesB = owedBy.get(a)?.get(b) ?? 0;
       const bOwesA = owedBy.get(b)?.get(a) ?? 0;
       const net = aOwesB - bOwesA;
+      if (isNegligibleMinorUnits(net)) continue;
 
       if (net > 0) {
         settlementSuggestions.push({
