@@ -22,6 +22,9 @@ out/
 .output/
 .svelte-kit/
 
+# Prisma generated client (regenerated via `prisma generate`, see postinstall)
+/generated/
+
 # Environment
 .env
 .env.local

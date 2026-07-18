@@ -1,0 +1,188 @@
+// Prisma schema for the authenticated (DB-backed) data path.
+// Field names mirror data/README.md's SampleData shape where possible, so
+// the guest (Zustand) and authenticated (Prisma) data-access implementations
+// in Phase 2 stay easy to reason about side by side.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SplitType {
+  equal
+  exact
+  percentage
+  shares
+}
+
+enum RecurringInterval {
+  weekly
+  biweekly
+  monthly
+}
+
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships Member[]
+  preference  UserPreference?
+
+  @@map("user")
+}
+
+model UserPreference {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  defaultCurrency      String   @db.VarChar(3)
+  notificationsEnabled Boolean  @default(true)
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preference")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  currency    String   @db.VarChar(3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     Member[]
+  expenses    Expense[]
+  settlements Settlement[]
+  balances    Balance[]
+
+  @@map("group")
+}
+
+
+model Member {
+  id          String   @id @default(cuid())
+  groupId     String
+  userId      String?
+  name        String
+  email       String?
+  avatarColor String
+  createdAt   DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  paidExpenses    Expense[]    @relation("ExpensePaidBy")
+  splits          Split[]
+  settlementsFrom Settlement[] @relation("SettlementFrom")
+  settlementsTo   Settlement[] @relation("SettlementTo")
+  balances        Balance[]
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@map("member")
+}
+
+model Expense {
+  id          String    @id @default(cuid())
+  groupId     String
+  description String
+ 
+  amount      Decimal   @db.Decimal(12, 4)
+  currency    String    @db.VarChar(3)
+
+  exchangeRate  Decimal @db.Decimal(18, 8)
+  rateIsUserSet Boolean @default(false)
+  paidById      String
+  splitType     SplitType
+  date          DateTime
+
+  category  String
+  notes     String?
+  recurring RecurringInterval?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy Member  @relation("ExpensePaidBy", fields: [paidById], references: [id])
+  splits Split[]
+
+  @@index([groupId])
+  @@index([groupId, date])
+  @@index([paidById])
+  @@map("expense")
+}
+
+model Split {
+  id         String   @id @default(cuid())
+  expenseId  String
+  memberId   String
+  amount     Decimal  @db.Decimal(12, 4)
+  shares     Int?
+  percentage Decimal? @db.Decimal(5, 2)
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id])
+
+  @@unique([expenseId, memberId])
+  @@index([memberId])
+  @@map("split")
+}
+
+model Settlement {
+  id           String   @id @default(cuid())
+  groupId      String
+  fromId       String
+  toId         String
+  amount       Decimal  @db.Decimal(12, 4)
+  currency     String   @db.VarChar(3)
+  exchangeRate Decimal  @db.Decimal(18, 8)
+  date         DateTime
+  createdAt    DateTime @default(now())
+
+  group Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  from  Member @relation("SettlementFrom", fields: [fromId], references: [id])
+  to    Member @relation("SettlementTo", fields: [toId], references: [id])
+
+  @@index([groupId])
+  @@index([fromId])
+  @@index([toId])
+  @@map("settlement")
+}
+
+
+model Balance {
+  id        String   @id @default(cuid())
+  groupId   String
+  memberId  String
+  netAmount Decimal  @db.Decimal(12, 4)
+  updatedAt DateTime @updatedAt
+
+  group  Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, memberId])
+  @@index([groupId])
+  @@map("balance")
+}
+
+model ExchangeRateCache {
+  id        String   @id @default(cuid())
+  base      String   @db.VarChar(3)
+  quote     String   @db.VarChar(3)
+  rate      Decimal  @db.Decimal(18, 8)
+  fetchedAt DateTime @default(now())
+
+  @@unique([base, quote])
+  @@map("exchange_rate_cache")
+}
