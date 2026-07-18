@@ -13,15 +13,6 @@ export type SharesSplitInput = {
   splits: SharesSplitEntry[];
 };
 
-// Derives each member's amount from their proportion of the total shares
-// (2 shares out of 6 total = 1/3 of the amount). Same "divide a whole
-// amount proportionally" problem as calculatePercentageSplit, just with
-// shares instead of percentages as the weights, so it uses the same
-// largest-remainder rounding: floor everyone's ideal share, then hand out
-// the leftover minor units to whoever was closest to rounding up. Unlike
-// percentages, shares have no fixed target to sum to (2:2:1:1 and 5:3:2 are
-// both valid), so there's no separate sum validator — only the degenerate
-// all-zero case needs guarding against.
 export function calculateSharesSplit({
   amount,
   currency,
