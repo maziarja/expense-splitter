@@ -23,3 +23,10 @@ export function roundToCurrencyPrecision(
 ): number {
   return fromMinorUnits(toMinorUnits(amount, currency), currency);
 }
+
+export function isNegligibleAmount(
+  amount: number,
+  currency: CurrencyCode,
+): boolean {
+  return Math.abs(toMinorUnits(amount, currency)) <= 1;
+}

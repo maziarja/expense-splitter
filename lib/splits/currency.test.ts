@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SUPPORTED_CURRENCIES } from "./constants";
 import {
   fromMinorUnits,
+  isNegligibleAmount,
   minorUnitDecimals,
   roundToCurrencyPrecision,
   toMinorUnits,
@@ -35,5 +36,15 @@ describe("roundToCurrencyPrecision", () => {
       const amount = currency === "JPY" ? 100 : 24.5;
       expect(roundToCurrencyPrecision(amount, currency)).toBe(amount);
     }
+  });
+});
+
+describe("isNegligibleAmount", () => {
+  it("treats a 1-minor-unit residual as negligible but 2 as real", () => {
+    expect(isNegligibleAmount(0.01, "USD")).toBe(true);
+    expect(isNegligibleAmount(-0.01, "USD")).toBe(true);
+    expect(isNegligibleAmount(0.02, "USD")).toBe(false);
+    expect(isNegligibleAmount(1, "JPY")).toBe(true);
+    expect(isNegligibleAmount(2, "JPY")).toBe(false);
   });
 });

@@ -25,7 +25,6 @@ enum RecurringInterval {
   monthly
 }
 
-
 model User {
   id            String   @id @default(cuid())
   name          String
@@ -69,15 +68,19 @@ model Group {
   @@map("group")
 }
 
-
 model Member {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   groupId     String
   userId      String?
   name        String
   email       String?
   avatarColor String
-  createdAt   DateTime @default(now())
+  // Set when a member is "removed" from the group. Never hard-deleted:
+  // historical expenses/splits/settlements keep referencing this row, so
+  // removal just hides them from pickers for new expenses rather than
+  // breaking old ones. Only settable once their balance is zero (app rule).
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
 
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -94,15 +97,15 @@ model Member {
 }
 
 model Expense {
-  id          String    @id @default(cuid())
+  id          String @id @default(cuid())
   groupId     String
   description String
- 
-  amount      Decimal   @db.Decimal(12, 4)
-  currency    String    @db.VarChar(3)
 
-  exchangeRate  Decimal @db.Decimal(18, 8)
-  rateIsUserSet Boolean @default(false)
+  amount   Decimal @db.Decimal(12, 4)
+  currency String  @db.VarChar(3)
+
+  exchangeRate  Decimal   @db.Decimal(18, 8)
+  rateIsUserSet Boolean   @default(false)
   paidById      String
   splitType     SplitType
   date          DateTime
@@ -159,7 +162,6 @@ model Settlement {
   @@index([toId])
   @@map("settlement")
 }
-
 
 model Balance {
   id        String   @id @default(cuid())
