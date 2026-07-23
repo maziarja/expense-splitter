@@ -40,6 +40,7 @@ const guestStorage = createJSONStorage<GuestStoreState>(() => ({
 type GuestStoreState = {
   data: GuestData;
   hasSeeded: boolean;
+  hasHydrated: boolean;
 };
 
 export const useGuestStore = create<GuestStoreState>()(
@@ -47,6 +48,7 @@ export const useGuestStore = create<GuestStoreState>()(
     (): GuestStoreState => ({
       data: emptyGuestData,
       hasSeeded: false,
+      hasHydrated: false,
     }),
     {
       name: "expense-splitter-guest",

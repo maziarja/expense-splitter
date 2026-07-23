@@ -22,6 +22,7 @@ export default function GroupsLayout({
   useEffect(() => {
     void (async () => {
       await useGuestStore.persist.rehydrate();
+      useGuestStore.setState({ hasHydrated: true });
       void guestDataAccess.listGroups();
     })();
   }, []);

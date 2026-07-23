@@ -587,10 +587,13 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean;
 }) {
-  // Random width between 50 to 90%.
-  const [width] = React.useState(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  });
+  // Varied width between 50-90%, derived from useId() rather than
+  // Math.random(): useId() is guaranteed to match between the server render
+  // and the client's hydration render, while Math.random() would pick a
+  // different value each time and trip a hydration mismatch.
+  const id = React.useId();
+  const hash = Array.from(id).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  const width = `${(hash % 40) + 50}%`;
 
   return (
     <div
@@ -601,12 +604,12 @@ function SidebarMenuSkeleton({
     >
       {showIcon && (
         <Skeleton
-          className="size-4 rounded-md"
+          className="size-4 rounded-md bg-sidebar-foreground/10"
           data-sidebar="menu-skeleton-icon"
         />
       )}
       <Skeleton
-        className="h-4 max-w-(--skeleton-width) flex-1"
+        className="h-4 max-w-(--skeleton-width) flex-1 bg-sidebar-foreground/10"
         data-sidebar="menu-skeleton-text"
         style={
           {

@@ -4,17 +4,19 @@ import { useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import GroupNotFound from "@/app/groups/[groupId]/not-found";
+import { GroupDashboardSkeleton } from "@/components/groups/group-dashboard-skeleton";
 import { GroupSummaryCard } from "@/components/groups/group-summary-card";
 import { PersonalBalanceCard } from "@/components/groups/personal-balance-card";
 import { RecentExpensesCard } from "@/components/groups/recent-expenses-card";
 import { SettlementSuggestionsCard } from "@/components/groups/settlement-suggestions-card";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { getCurrentMember } from "@/lib/data/current-member";
-import { useGuestGroup } from "@/lib/data/guest-hooks";
+import { useGuestGroup, useGuestReady } from "@/lib/data/guest-hooks";
 import { calculateTotalSpent } from "@/lib/splits/balance";
 
 export default function GroupDashboardPage() {
   const { groupId } = useParams<{ groupId: string }>();
+  const ready = useGuestReady();
   const group = useGuestGroup(groupId);
 
   const activeMembers = useMemo(
@@ -30,6 +32,10 @@ export default function GroupDashboardPage() {
     () => (group ? calculateTotalSpent(group.expenses, group.currency) : 0),
     [group],
   );
+
+  if (!ready) {
+    return <GroupDashboardSkeleton />;
+  }
 
   if (!group) {
     return <GroupNotFound />;
