@@ -22,3 +22,11 @@ export function useGuestGroup(groupId: string): GroupDetail | null {
 export function useGuestReady(): boolean {
   return useGuestStore((state) => state.hasHydrated && state.hasSeeded);
 }
+
+export function useSignupPromptDismissed(): boolean {
+  return useGuestStore((state) => state.signupPromptDismissed);
+}
+
+export function dismissSignupPrompt(): void {
+  useGuestStore.setState({ signupPromptDismissed: true });
+}

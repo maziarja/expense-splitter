@@ -52,24 +52,24 @@ export function BalanceCardMockup() {
             <div className="flex items-center justify-between rounded-md bg-owed-subtle px-4 py-3">
               <span className="flex items-center gap-2 text-sm text-text-secondary">
                 <ArrowUpRightIcon
-                  className="size-4 text-owed"
+                  className="size-4 text-owed-strong"
                   aria-hidden="true"
                 />
                 Jordan owes you
               </span>
-              <span className="font-mono text-xl font-medium text-owed tabular-nums">
+              <span className="font-mono text-xl font-medium text-owed-strong tabular-nums">
                 $22.50
               </span>
             </div>
             <div className="flex items-center justify-between rounded-md bg-owe-subtle px-4 py-3">
               <span className="flex items-center gap-2 text-sm text-text-secondary">
                 <ArrowDownRightIcon
-                  className="size-4 text-owe"
+                  className="size-4 text-owe-strong"
                   aria-hidden="true"
                 />
                 You owe Alex
               </span>
-              <span className="font-mono text-xl font-medium text-owe tabular-nums">
+              <span className="font-mono text-xl font-medium text-owe-strong tabular-nums">
                 $45.00
               </span>
             </div>

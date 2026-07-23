@@ -1,35 +1,12 @@
-/*
-  Theme strategy
-  --------------
-  Light is the default. Dark applies in two ways:
-
-  1. Automatically, when the user's OS prefers dark (`prefers-color-scheme`).
-  2. Manually, when you set `data-theme="dark"` on <html> from a toggle.
-     A `.dark` class is accepted as an equivalent manual trigger too, since
-     that's the convention shadcn/ui's generated components assume for their
-     own `dark:` Tailwind variants.
-
-  A manual choice always wins: `data-theme="light"` (or a `.light` class)
-  forces light even on a dark OS, and `data-theme="dark"` (or `.dark`)
-  forces dark even on a light OS.
-
-  To avoid a flash of the wrong theme, set `data-theme` from a small inline
-  script in <head> (reading the saved preference) before the first paint.
-
-  The dark palette is intentionally defined twice below. Keep the two blocks
-  in sync if you change a value.
-*/
-
 :root {
   color-scheme: light;
 
-  /* Light mode: cool, clean (all text pairings meet WCAG AA) */
   --color-bg-primary: #f6f8fb;
-  --color-bg-secondary: #edf1f6;
-  --color-bg-tertiary: #e3e9f1;
+  --color-bg-secondary: #e5ecf5;
+  --color-bg-tertiary: #d2deef;
   --color-surface: #ffffff;
-  --color-border: #dbe1ea;
-  --color-border-subtle: #e7ecf3;
+  --color-border: #c7d3e6;
+  --color-border-subtle: #e1e9f4;
 
   --color-text-primary: #131a26;
   --color-text-secondary: #566073;
@@ -37,7 +14,7 @@
 
   --color-accent: #c2410c;
   --color-accent-hover: #9a3412;
-  --color-accent-subtle: #fdece3;
+  --color-accent-subtle: #fcd9c5;
 
   --color-success: #0a7e55;
   --color-warning: #b5790a;
@@ -45,8 +22,10 @@
 
   --color-owe: #d32637;
   --color-owed: #0a7e55;
-  --color-owe-subtle: #fce7ea;
-  --color-owed-subtle: #dcf1e9;
+  --color-owe-subtle: #fccfd5;
+  --color-owed-subtle: #c2f5e1;
+  --color-owe-strong: #ba172d;
+  --color-owed-strong: #0d734d;
 
   --color-focus: #c2410c;
 
@@ -104,18 +83,16 @@
   --page-max-width: 80rem;
 }
 
-/* Dark mode: cool graphite (primary showcase; the preview uses it).
-   Block 1 of 2: follows the OS unless the user has forced light. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not(.light) {
     color-scheme: dark;
 
     --color-bg-primary: #0a0d13;
-    --color-bg-secondary: #0c0f16;
-    --color-bg-tertiary: #151a24;
+    --color-bg-secondary: #0e111b;
+    --color-bg-tertiary: #171d2b;
     --color-surface: #10141c;
-    --color-border: #212935;
-    --color-border-subtle: #1a202b;
+    --color-border: #232c3d;
+    --color-border-subtle: #1d2535;
 
     --color-text-primary: #e7ebf2;
     --color-text-secondary: #8b94a6;
@@ -123,7 +100,7 @@
 
     --color-accent: #fb923c;
     --color-accent-hover: #fdba74;
-    --color-accent-subtle: #3a1f0d;
+    --color-accent-subtle: #45230c;
 
     --color-success: #36d29a;
     --color-warning: #e3b341;
@@ -131,8 +108,10 @@
 
     --color-owe: #fb7185;
     --color-owed: #36d29a;
-    --color-owe-subtle: #2a171c;
-    --color-owed-subtle: #102a22;
+    --color-owe-subtle: #37151e;
+    --color-owed-subtle: #0f3328;
+    --color-owe-strong: #fb7185;
+    --color-owed-strong: #36d29a;
 
     --color-focus: #fb923c;
 
@@ -144,18 +123,16 @@
   }
 }
 
-/* Dark mode, Block 2 of 2: a manual toggle setting data-theme="dark" (or a
-   .dark class), which overrides the OS setting. Keep in sync with Block 1. */
 :root[data-theme="dark"],
 :root.dark {
   color-scheme: dark;
 
   --color-bg-primary: #0a0d13;
-  --color-bg-secondary: #0c0f16;
-  --color-bg-tertiary: #151a24;
+  --color-bg-secondary: #0e111b;
+  --color-bg-tertiary: #171d2b;
   --color-surface: #10141c;
-  --color-border: #212935;
-  --color-border-subtle: #1a202b;
+  --color-border: #232c3d;
+  --color-border-subtle: #1d2535;
 
   --color-text-primary: #e7ebf2;
   --color-text-secondary: #8b94a6;
@@ -163,7 +140,7 @@
 
   --color-accent: #fb923c;
   --color-accent-hover: #fdba74;
-  --color-accent-subtle: #3a1f0d;
+  --color-accent-subtle: #45230c;
 
   --color-success: #36d29a;
   --color-warning: #e3b341;
@@ -171,8 +148,10 @@
 
   --color-owe: #fb7185;
   --color-owed: #36d29a;
-  --color-owe-subtle: #2a171c;
-  --color-owed-subtle: #102a22;
+  --color-owe-subtle: #37151e;
+  --color-owed-subtle: #0f3328;
+  --color-owe-strong: #fb7185;
+  --color-owed-strong: #36d29a;
 
   --color-focus: #fb923c;
 

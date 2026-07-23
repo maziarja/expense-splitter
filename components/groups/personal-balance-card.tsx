@@ -56,7 +56,7 @@ export function PersonalBalanceCard({
                     <Icon
                       className={cn(
                         "size-4 md:size-5",
-                        youAreOwed ? "text-owed" : "text-owe",
+                        youAreOwed ? "text-owed-strong" : "text-owe-strong",
                       )}
                       aria-hidden="true"
                     />
@@ -67,7 +67,7 @@ export function PersonalBalanceCard({
                   <span
                     className={cn(
                       "font-mono text-xl font-medium tabular-nums md:text-2xl",
-                      youAreOwed ? "text-owed" : "text-owe",
+                      youAreOwed ? "text-owed-strong" : "text-owe-strong",
                     )}
                   >
                     {formatCurrency(s.amount, currency)}

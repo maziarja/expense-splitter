@@ -41,6 +41,7 @@ type GuestStoreState = {
   data: GuestData;
   hasSeeded: boolean;
   hasHydrated: boolean;
+  signupPromptDismissed: boolean;
 };
 
 export const useGuestStore = create<GuestStoreState>()(
@@ -49,6 +50,7 @@ export const useGuestStore = create<GuestStoreState>()(
       data: emptyGuestData,
       hasSeeded: false,
       hasHydrated: false,
+      signupPromptDismissed: false,
     }),
     {
       name: "expense-splitter-guest",

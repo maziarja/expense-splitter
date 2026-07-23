@@ -45,7 +45,7 @@ export default function GroupDashboardPage() {
   const yourBalance = group.memberBalances.find((b) => b.memberId === you?.id);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 bg-bg-primary p-8">
+    <main className="flex flex-1 flex-col gap-6 bg-bg-primary px-4 py-8 md:px-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4">

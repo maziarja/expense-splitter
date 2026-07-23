@@ -28,7 +28,9 @@ export function GroupBalanceBadge({
     <span
       className={cn(
         "flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-sm tabular-nums",
-        isOwed ? "bg-owed-subtle text-owed" : "bg-owe-subtle text-owe",
+        isOwed
+          ? "bg-owed-subtle text-owed-strong"
+          : "bg-owe-subtle text-owe-strong",
       )}
     >
       <Icon className="size-3" aria-hidden="true" />
