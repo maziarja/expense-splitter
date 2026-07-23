@@ -1,17 +1,21 @@
 import { describe, expect, it } from "vitest";
 import sampleData from "../../data/sample-groups.json";
-import { calculateBalances } from "./balance";
+import { calculateBalances, calculateTotalSpent } from "./balance";
 import type { CurrencyCode } from "./constants";
+
+function expensesForGroup(group: (typeof sampleData.groups)[number]) {
+  return group.expenses.map((e) => ({
+    paidBy: e.paidBy,
+    currency: e.currency as CurrencyCode,
+    exchangeRate: e.exchangeRate,
+    splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
+  }));
+}
 
 function balancesForGroup(group: (typeof sampleData.groups)[number]) {
   return calculateBalances({
     memberIds: group.members.map((m) => m.id),
-    expenses: group.expenses.map((e) => ({
-      paidBy: e.paidBy,
-      currency: e.currency as CurrencyCode,
-      exchangeRate: e.exchangeRate,
-      splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
-    })),
+    expenses: expensesForGroup(group),
     settlements: group.settlements.map((s) => ({
       from: s.from,
       to: s.to,
@@ -143,5 +147,44 @@ describe("calculateBalances", () => {
       [s.from, s.to].sort().join("|"),
     );
     expect(new Set(pairKeys).size).toBe(pairKeys.length);
+  });
+});
+
+describe("calculateTotalSpent", () => {
+  it("sums a single-currency group's expenses (Sarah's Birthday Present)", () => {
+    const group = sampleData.groups.find(
+      (g) => g.name === "Sarah's Birthday Present",
+    )!;
+    const total = calculateTotalSpent(
+      expensesForGroup(group),
+      group.currency as CurrencyCode,
+    );
+    expect(total).toBe(357.49);
+  });
+
+  it("returns 0 for an empty expense list", () => {
+    expect(calculateTotalSpent([], "USD")).toBe(0);
+  });
+
+  it("sums converted per-split amounts rather than converting the whole expense amount at once", () => {
+    // 14.81 + 38.03 = 52.84. Converting the whole amount at 1.1184 rounds to
+    // 59.10, but summing each split converted-and-rounded individually gives
+    // 59.09 — a genuine one-cent divergence that proves this doesn't take
+    // the naive "convert expense.amount directly" shortcut.
+    const total = calculateTotalSpent(
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1.1184,
+          splits: [
+            { memberId: "a", amount: 14.81 },
+            { memberId: "b", amount: 38.03 },
+          ],
+        },
+      ],
+      "USD",
+    );
+    expect(total).toBe(59.09);
   });
 });

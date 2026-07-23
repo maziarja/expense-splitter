@@ -76,6 +76,26 @@ function convertedMinorUnits(
   return toMinorUnits(converted, groupCurrency);
 }
 
+// Sums each expense's *converted, per-split* amounts rather than converting
+// expense.amount as a whole — matches how calculateBalances credits the
+// payer, so this never drifts from the balance engine's own rounding (summing
+// per-split can differ from rounding the whole amount by a cent).
+export function calculateTotalSpent(
+  expenses: ExpenseForBalance[],
+  groupCurrency: CurrencyCode,
+): number {
+  const totalMinorUnits = expenses.reduce((sum, expense) => {
+    const expenseMinorUnits = expense.splits.reduce(
+      (splitSum, split) =>
+        splitSum +
+        convertedMinorUnits(split.amount, expense.exchangeRate, groupCurrency),
+      0,
+    );
+    return sum + expenseMinorUnits;
+  }, 0);
+  return fromMinorUnits(totalMinorUnits, groupCurrency);
+}
+
 export function calculateBalances({
   memberIds,
   expenses,
