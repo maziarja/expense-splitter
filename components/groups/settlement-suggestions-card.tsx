@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Member } from "@/lib/data/types";
@@ -24,9 +24,17 @@ export function SettlementSuggestionsCard({
       </CardHeader>
       <CardContent>
         {settlementSuggestions.length === 0 ? (
-          <p className="text-sm text-text-tertiary md:text-base">
-            Everyone&apos;s settled up.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-4 text-center">
+            <div className="flex size-10 items-center justify-center rounded-full bg-success/15">
+              <CheckIcon className="size-5 text-success" aria-hidden="true" />
+            </div>
+            <p className="text-base font-semibold text-text-primary">
+              All settled up
+            </p>
+            <p className="text-sm text-text-tertiary">
+              No settlements needed right now.
+            </p>
+          </div>
         ) : (
           <ul className="flex flex-col divide-y divide-border-subtle">
             {settlementSuggestions.map((s) => {
