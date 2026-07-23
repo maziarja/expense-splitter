@@ -47,6 +47,7 @@ export type GroupSummary = {
   memberCount: number;
   expenseCount: number;
   memberBalances: MemberBalance[];
+  yourBalance: MemberBalance | null;
 };
 
 export type CreateGroupInput = {

@@ -51,14 +51,20 @@ export const useGuestStore = create<GuestStoreState>()(
     {
       name: "expense-splitter-guest",
       storage: guestStorage,
+      // sessionStorage reads are synchronous, so without this the persist
+      // middleware rehydrates the store synchronously on the client at
+      // module-eval time — before React's first render — while SSR always
+      // renders with the factory default (no sessionStorage on the server).
+      // That mismatch between server and first-client-paint state trips a
+      // real hydration error. Rehydrating manually inside a mount effect
+      // (see app/groups/layout.tsx) instead means the first client render
+      // matches SSR exactly, and real data arrives one tick later via a
+      // normal state update, not a hydration diff.
+      skipHydration: true,
     },
   ),
 );
 
-// Seeds from data/sample-groups.json exactly once per session — the first
-// call after a fresh sessionStorage (new tab, or cleared session). Every
-// DataAccess method below goes through this before reading state, so
-// callers never need to seed explicitly.
 function currentData(): GuestData {
   const state = useGuestStore.getState();
   if (!state.hasSeeded) {

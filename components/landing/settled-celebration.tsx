@@ -1,4 +1,4 @@
-import { PartyPopper } from "lucide-react";
+import { PartyPopperIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
 type Confetti = { tx: string; ty: string; rot: string; color: string };
@@ -34,7 +34,7 @@ export function SettledCelebration() {
         />
       ))}
       <div className="flex size-12 items-center justify-center rounded-full bg-success/15">
-        <PartyPopper className="size-6 text-success" aria-hidden="true" />
+        <PartyPopperIcon className="size-6 text-success" aria-hidden="true" />
       </div>
       <p className="text-lg font-bold text-text-primary">All settled up!</p>
       <p className="text-sm text-text-secondary">

@@ -1,8 +1,8 @@
 import {
-  ArrowLeftRight,
-  Globe,
-  HandCoins,
-  SlidersHorizontal,
+  ArrowLeftRightIcon,
+  GlobeIcon,
+  HandCoinsIcon,
+  SlidersHorizontalIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,25 +16,25 @@ type Feature = {
 
 const features: Feature[] = [
   {
-    icon: SlidersHorizontal,
+    icon: SlidersHorizontalIcon,
     title: "Split it your way",
     description:
       "Equal, exact amounts, percentages, or shares — fair splits for real situations, not just even ones.",
   },
   {
-    icon: Globe,
+    icon: GlobeIcon,
     title: "Built for multi-currency trips",
     description:
       "Log an expense in any currency; balances convert automatically with live exchange rates.",
   },
   {
-    icon: ArrowLeftRight,
+    icon: ArrowLeftRightIcon,
     title: "Balances, always current",
     description:
       "Every expense updates who-owes-who instantly, with the math handled for you.",
   },
   {
-    icon: HandCoins,
+    icon: HandCoinsIcon,
     title: "Settle up with confidence",
     description:
       "Clear pairwise settlement suggestions make paying back friends simple — and settled means settled.",

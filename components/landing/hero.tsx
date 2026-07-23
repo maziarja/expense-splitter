@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 
 import { BalanceCardMockup } from "@/components/landing/balance-card-mockup";
@@ -27,7 +27,7 @@ export function Hero() {
           >
             <Link href="/groups">
               Try as Guest
-              <ArrowRight className="size-4" aria-hidden="true" />
+              <ArrowRightIcon className="size-4" aria-hidden="true" />
             </Link>
           </Button>
           <Button

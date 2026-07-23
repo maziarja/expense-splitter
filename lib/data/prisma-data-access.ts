@@ -4,6 +4,7 @@ import { calculateBalances } from "../splits/balance";
 import type { CurrencyCode } from "../splits/constants";
 import { isNegligibleAmount } from "../splits/currency";
 import type { SplitType } from "../splits/schema";
+import { getCurrentMember } from "./current-member";
 import {
   DataAccessError,
   type DataAccess,
@@ -256,6 +257,12 @@ export const prismaDataAccess: DataAccess = {
         };
       });
 
+      // TODO(Phase 6): once auth is wired up, resolve "you" from the
+      // session's userId instead of the members[0] placeholder convention.
+      const you = getCurrentMember(group.members.map(toMember));
+      const yourBalance =
+        memberBalances.find((balance) => balance.memberId === you?.id) ?? null;
+
       return {
         id: group.id,
         name: group.name,
@@ -263,6 +270,7 @@ export const prismaDataAccess: DataAccess = {
         memberCount: group.members.filter((m) => !m.deletedAt).length,
         expenseCount: group._count.expenses,
         memberBalances,
+        yourBalance,
       };
     });
   },

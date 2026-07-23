@@ -1,5 +1,6 @@
 import { calculateBalances } from "../splits/balance";
 import { DataAccessError } from "./data-access";
+import { getCurrentMember } from "./current-member";
 import type {
   AddMemberInput,
   CreateExpenseInput,
@@ -63,6 +64,9 @@ export function computeBalances(group: GuestGroup) {
 
 export function toGroupSummary(group: GuestGroup): GroupSummary {
   const { memberBalances } = computeBalances(group);
+  const you = getCurrentMember(group.members);
+  const yourBalance =
+    memberBalances.find((balance) => balance.memberId === you?.id) ?? null;
   return {
     id: group.id,
     name: group.name,
@@ -70,6 +74,7 @@ export function toGroupSummary(group: GuestGroup): GroupSummary {
     memberCount: group.members.filter((m) => !m.deletedAt).length,
     expenseCount: group.expenses.length,
     memberBalances,
+    yourBalance,
   };
 }
 

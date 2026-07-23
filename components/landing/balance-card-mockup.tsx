@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, Check } from "lucide-react";
+import { ArrowDownRightIcon, ArrowUpRightIcon, CheckIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
@@ -51,7 +51,10 @@ export function BalanceCardMockup() {
           <>
             <div className="flex items-center justify-between rounded-md bg-owed-subtle px-4 py-3">
               <span className="flex items-center gap-2 text-sm text-text-secondary">
-                <ArrowUpRight className="size-4 text-owed" aria-hidden="true" />
+                <ArrowUpRightIcon
+                  className="size-4 text-owed"
+                  aria-hidden="true"
+                />
                 Jordan owes you
               </span>
               <span className="font-mono text-xl font-medium text-owed tabular-nums">
@@ -60,7 +63,7 @@ export function BalanceCardMockup() {
             </div>
             <div className="flex items-center justify-between rounded-md bg-owe-subtle px-4 py-3">
               <span className="flex items-center gap-2 text-sm text-text-secondary">
-                <ArrowDownRight
+                <ArrowDownRightIcon
                   className="size-4 text-owe"
                   aria-hidden="true"
                 />
@@ -85,7 +88,7 @@ export function BalanceCardMockup() {
       <CardFooter>
         {settled ? (
           <span className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-success">
-            <Check className="size-4" aria-hidden="true" />
+            <CheckIcon className="size-4" aria-hidden="true" />
             Settled
           </span>
         ) : (

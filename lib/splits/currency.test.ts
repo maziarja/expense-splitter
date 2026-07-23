@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SUPPORTED_CURRENCIES } from "./constants";
 import {
+  formatCurrency,
   fromMinorUnits,
   isNegligibleAmount,
   minorUnitDecimals,
@@ -46,5 +47,19 @@ describe("isNegligibleAmount", () => {
     expect(isNegligibleAmount(0.02, "USD")).toBe(false);
     expect(isNegligibleAmount(1, "JPY")).toBe(true);
     expect(isNegligibleAmount(2, "JPY")).toBe(false);
+  });
+});
+
+describe("formatCurrency", () => {
+  it("formats standard currencies with 2 decimals and thousands separators", () => {
+    expect(formatCurrency(1234.5, "USD")).toBe("$1,234.50");
+  });
+
+  it("formats zero-decimal currencies with no decimals", () => {
+    expect(formatCurrency(4850, "JPY")).toBe("¥4,850");
+  });
+
+  it("formats negative amounts with a leading minus sign", () => {
+    expect(formatCurrency(-45, "USD")).toBe("-$45.00");
   });
 });

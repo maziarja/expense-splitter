@@ -30,3 +30,15 @@ export function isNegligibleAmount(
 ): boolean {
   return Math.abs(toMinorUnits(amount, currency)) <= 1;
 }
+
+const CURRENCY_LOCALE = "en-US";
+
+export function formatCurrency(amount: number, currency: CurrencyCode): string {
+  const decimals = minorUnitDecimals(currency);
+  return new Intl.NumberFormat(CURRENCY_LOCALE, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(amount);
+}

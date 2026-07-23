@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import sampleData from "../../data/sample-groups.json";
 import { calculateBalances } from "../splits/balance";
 import type { CurrencyCode } from "../splits/constants";
-import { toGroupDetail } from "./guest-engine";
+import { toGroupDetail, toGroupSummary } from "./guest-engine";
 import { buildSeedData } from "./seed";
 
 // The balance math itself (rounding, sum-to-zero, the Chloe/Ben edge case)
@@ -76,6 +76,20 @@ describe("buildSeedData", () => {
       expect(detail.settlementSuggestions).toEqual(
         direct.settlementSuggestions,
       );
+    },
+  );
+
+  it.each(sampleData.groups.map((g) => [g.name, g] as const))(
+    "%s: toGroupSummary's yourBalance is the first member's balance (guest-mode convention)",
+    (_name, raw) => {
+      const { groups } = buildSeedData();
+      const summary = toGroupSummary(groups[raw.id]);
+      const firstMemberId = raw.members[0].id;
+      const expected =
+        summary.memberBalances.find((b) => b.memberId === firstMemberId) ??
+        null;
+      expect(summary.yourBalance).toEqual(expected);
+      expect(summary.yourBalance?.memberId).toBe(firstMemberId);
     },
   );
 
