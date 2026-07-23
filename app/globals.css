@@ -171,3 +171,19 @@
     @apply font-sans;
   }
 }
+
+/* Confetti burst for the landing hero's balance-card demo (see
+   components/landing/balance-card-mockup.tsx). Each piece sets --tx/--ty/--rot
+   inline; tw-animate-css doesn't ship a burst-outward primitive, so this is
+   the one hand-rolled keyframe in the app. */
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      rotate(var(--rot)) scale(0.6);
+  }
+}

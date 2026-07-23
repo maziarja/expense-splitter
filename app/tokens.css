@@ -35,9 +35,9 @@
   --color-text-secondary: #566073;
   --color-text-tertiary: #646e7c;
 
-  --color-accent: #2a62d6;
-  --color-accent-hover: #2156c9;
-  --color-accent-subtle: #e7eefc;
+  --color-accent: #c2410c;
+  --color-accent-hover: #9a3412;
+  --color-accent-subtle: #fdece3;
 
   --color-success: #0a7e55;
   --color-warning: #b5790a;
@@ -48,7 +48,7 @@
   --color-owe-subtle: #fce7ea;
   --color-owed-subtle: #dcf1e9;
 
-  --color-focus: #2a62d6;
+  --color-focus: #c2410c;
 
   --font-sans: var(--font-manrope), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-ibm-plex-mono), ui-monospace, "SF Mono", monospace;
@@ -121,9 +121,9 @@
     --color-text-secondary: #8b94a6;
     --color-text-tertiary: #788294;
 
-    --color-accent: #5b8def;
-    --color-accent-hover: #7fa6f5;
-    --color-accent-subtle: #15203a;
+    --color-accent: #fb923c;
+    --color-accent-hover: #fdba74;
+    --color-accent-subtle: #3a1f0d;
 
     --color-success: #36d29a;
     --color-warning: #e3b341;
@@ -134,7 +134,7 @@
     --color-owe-subtle: #2a171c;
     --color-owed-subtle: #102a22;
 
-    --color-focus: #5b8def;
+    --color-focus: #fb923c;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md:
@@ -161,9 +161,9 @@
   --color-text-secondary: #8b94a6;
   --color-text-tertiary: #788294;
 
-  --color-accent: #5b8def;
-  --color-accent-hover: #7fa6f5;
-  --color-accent-subtle: #15203a;
+  --color-accent: #fb923c;
+  --color-accent-hover: #fdba74;
+  --color-accent-subtle: #3a1f0d;
 
   --color-success: #36d29a;
   --color-warning: #e3b341;
@@ -174,7 +174,7 @@
   --color-owe-subtle: #2a171c;
   --color-owed-subtle: #102a22;
 
-  --color-focus: #5b8def;
+  --color-focus: #fb923c;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md:
