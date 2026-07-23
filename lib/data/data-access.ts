@@ -20,7 +20,7 @@ import type {
 } from "./types";
 
 export const createGroupInputSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1, "Group name is required"),
   description: z.string().optional(),
   currency: currencyCodeSchema,
 });

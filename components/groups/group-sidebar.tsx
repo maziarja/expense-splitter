@@ -1,6 +1,6 @@
 "use client";
 
-import { UsersIcon } from "lucide-react";
+import { PlusIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,6 +11,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -21,6 +22,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useCreateGroupDialogStore } from "@/lib/data/create-group-dialog-store";
 import { useGuestGroups, useGuestReady } from "@/lib/data/guest-hooks";
 
 export function GroupSidebar() {
@@ -39,6 +41,15 @@ export function GroupSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm">Your groups</SidebarGroupLabel>
+          <SidebarGroupAction
+            onClick={() => {
+              if (isMobile) setOpenMobile(false);
+              useCreateGroupDialogStore.getState().setOpen(true);
+            }}
+          >
+            <PlusIcon aria-hidden="true" />
+            <span className="sr-only">New group</span>
+          </SidebarGroupAction>
           <SidebarGroupContent>
             <SidebarMenu>
               {!ready

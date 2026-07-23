@@ -4,6 +4,7 @@ import { HomeIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 
+import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupSidebar } from "@/components/groups/group-sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ export default function GroupsLayout({
     <TooltipProvider>
       <SidebarProvider>
         <GroupSidebar />
+        <CreateGroupDialog />
         <SidebarInset>
           <header className="flex items-center gap-3 border-b border-border-subtle px-4 py-3">
             <SidebarTrigger />

@@ -1,4 +1,8 @@
-import { ZERO_DECIMAL_CURRENCIES, type CurrencyCode } from "./constants";
+import {
+  SUPPORTED_CURRENCIES,
+  ZERO_DECIMAL_CURRENCIES,
+  type CurrencyCode,
+} from "./constants";
 
 export function minorUnitDecimals(currency: CurrencyCode): number {
   return ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
@@ -41,4 +45,41 @@ export function formatCurrency(amount: number, currency: CurrencyCode): string {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(amount);
+}
+
+export function getCurrencySymbol(currency: CurrencyCode): string {
+  const part = new Intl.NumberFormat(CURRENCY_LOCALE, {
+    style: "currency",
+    currency,
+  })
+    .formatToParts(0)
+    .find((p) => p.type === "currency");
+  return part?.value ?? currency;
+}
+
+const CURRENCY_NAMES: Record<CurrencyCode, string> = {
+  USD: "US Dollar",
+  EUR: "Euro",
+  GBP: "British Pound",
+  JPY: "Japanese Yen",
+  CAD: "Canadian Dollar",
+  AUD: "Australian Dollar",
+  CHF: "Swiss Franc",
+  CNY: "Chinese Yuan",
+  INR: "Indian Rupee",
+  MXN: "Mexican Peso",
+};
+
+export type CurrencyOption = {
+  code: CurrencyCode;
+  symbol: string;
+  name: string;
+};
+
+export function getCurrencyOptions(): CurrencyOption[] {
+  return SUPPORTED_CURRENCIES.map((code) => ({
+    code,
+    symbol: getCurrencySymbol(code),
+    name: CURRENCY_NAMES[code],
+  }));
 }
