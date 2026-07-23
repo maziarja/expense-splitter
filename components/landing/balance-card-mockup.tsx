@@ -40,7 +40,7 @@ export function BalanceCardMockup() {
           ))}
         </AvatarGroup>
         <p className="text-xs text-text-tertiary">Trip to Japan · 4 members</p>
-        <CardTitle className="text-lg font-bold text-text-primary">
+        <CardTitle className="text-base font-bold text-text-primary">
           Group balance
         </CardTitle>
       </CardHeader>
@@ -50,35 +50,35 @@ export function BalanceCardMockup() {
         ) : (
           <>
             <div className="flex items-center justify-between rounded-md bg-owed-subtle px-4 py-3">
-              <span className="flex items-center gap-2 text-sm text-text-secondary">
+              <span className="flex items-center gap-2 text-xs text-text-secondary">
                 <ArrowUpRightIcon
                   className="size-4 text-owed-strong"
                   aria-hidden="true"
                 />
                 Jordan owes you
               </span>
-              <span className="font-mono text-xl font-medium text-owed-strong tabular-nums">
+              <span className="font-mono text-lg font-medium text-owed-strong tabular-nums">
                 $22.50
               </span>
             </div>
             <div className="flex items-center justify-between rounded-md bg-owe-subtle px-4 py-3">
-              <span className="flex items-center gap-2 text-sm text-text-secondary">
+              <span className="flex items-center gap-2 text-xs text-text-secondary">
                 <ArrowDownRightIcon
                   className="size-4 text-owe-strong"
                   aria-hidden="true"
                 />
                 You owe Alex
               </span>
-              <span className="font-mono text-xl font-medium text-owe-strong tabular-nums">
+              <span className="font-mono text-lg font-medium text-owe-strong tabular-nums">
                 $45.00
               </span>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-text-tertiary">
+              <span className="text-xs text-text-tertiary">
                 Your net balance
               </span>
-              <span className="font-mono text-sm font-medium text-owe tabular-nums">
+              <span className="font-mono text-xs font-medium text-owe tabular-nums">
                 -$22.50
               </span>
             </div>
@@ -87,7 +87,7 @@ export function BalanceCardMockup() {
       </CardContent>
       <CardFooter>
         {settled ? (
-          <span className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-success">
+          <span className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-success">
             <CheckIcon className="size-4" aria-hidden="true" />
             Settled
           </span>

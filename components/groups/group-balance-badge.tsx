@@ -14,7 +14,7 @@ export function GroupBalanceBadge({
 }) {
   if (!balance || balance.isSettled) {
     return (
-      <span className="flex shrink-0 items-center gap-1 text-sm text-text-tertiary">
+      <span className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
         <CheckIcon className="size-3" aria-hidden="true" />
         Settled
       </span>
@@ -27,7 +27,7 @@ export function GroupBalanceBadge({
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-sm tabular-nums",
+        "flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-xs tabular-nums",
         isOwed
           ? "bg-owed-subtle text-owed-strong"
           : "bg-owe-subtle text-owe-strong",

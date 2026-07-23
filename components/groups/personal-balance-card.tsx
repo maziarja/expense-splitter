@@ -29,7 +29,7 @@ export function PersonalBalanceCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-text-primary md:text-xl">
+        <CardTitle className="text-base font-semibold text-text-primary md:text-lg">
           Your balance
         </CardTitle>
       </CardHeader>
@@ -52,7 +52,7 @@ export function PersonalBalanceCard({
                     youAreOwed ? "bg-owed-subtle" : "bg-owe-subtle",
                   )}
                 >
-                  <span className="flex items-center gap-2 text-sm text-text-secondary md:text-base">
+                  <span className="flex items-center gap-2 text-xs text-text-secondary md:text-sm">
                     <Icon
                       className={cn(
                         "size-4 md:size-5",
@@ -66,7 +66,7 @@ export function PersonalBalanceCard({
                   </span>
                   <span
                     className={cn(
-                      "font-mono text-xl font-medium tabular-nums md:text-2xl",
+                      "font-mono text-lg font-medium tabular-nums md:text-xl",
                       youAreOwed ? "text-owed-strong" : "text-owe-strong",
                     )}
                   >
@@ -77,12 +77,12 @@ export function PersonalBalanceCard({
             })}
             <Separator />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-text-tertiary md:text-base">
+              <span className="text-xs text-text-tertiary md:text-sm">
                 Your net balance
               </span>
               <span
                 className={cn(
-                  "font-mono text-sm font-medium tabular-nums md:text-base",
+                  "font-mono text-xs font-medium tabular-nums md:text-sm",
                   yourBalance.netBalance > 0 ? "text-owed" : "text-owe",
                 )}
               >

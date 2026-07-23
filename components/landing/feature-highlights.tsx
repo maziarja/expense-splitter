@@ -48,12 +48,12 @@ function FeatureCard({ icon: Icon, title, description }: Feature) {
         <div className="flex size-9 items-center justify-center rounded-md bg-accent-subtle">
           <Icon className="size-5 text-accent" aria-hidden="true" />
         </div>
-        <CardTitle className="mt-2 text-lg font-semibold text-text-primary">
+        <CardTitle className="mt-2 text-base font-semibold text-text-primary">
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-text-secondary">{description}</p>
+        <p className="text-xs text-text-secondary">{description}</p>
       </CardContent>
     </Card>
   );
@@ -62,7 +62,7 @@ function FeatureCard({ icon: Icon, title, description }: Feature) {
 export function FeatureHighlights() {
   return (
     <section className="mx-auto max-w-page px-4 pb-20 sm:px-6 lg:px-8">
-      <h2 className="text-2xl font-bold text-text-primary">
+      <h2 className="text-xl font-bold text-text-primary">
         Everything you need to split fairly
       </h2>
       <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

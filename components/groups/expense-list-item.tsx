@@ -28,10 +28,10 @@ export function ExpenseListItem({
         <span className="sr-only">{expense.category}</span>
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-text-primary md:text-base">
+        <p className="truncate text-xs text-text-primary md:text-sm">
           {expense.description}
         </p>
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-text-tertiary md:text-sm">
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-text-tertiary md:text-xs">
           <Avatar size="sm">
             <AvatarFallback
               className="text-white"
@@ -53,7 +53,7 @@ export function ExpenseListItem({
           )}
         </p>
       </div>
-      <span className="shrink-0 font-mono text-sm font-semibold text-text-primary tabular-nums md:text-base">
+      <span className="shrink-0 font-mono text-xs font-semibold text-text-primary tabular-nums md:text-sm">
         {formatCurrency(expense.amount, expense.currency)}
       </span>
     </li>

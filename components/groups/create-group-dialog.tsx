@@ -160,7 +160,7 @@ export function CreateGroupDialog() {
             />
           </FieldGroup>
           {submitError && (
-            <p role="alert" className="mt-3 text-sm text-destructive">
+            <p role="alert" className="mt-3 text-xs text-destructive">
               {submitError}
             </p>
           )}

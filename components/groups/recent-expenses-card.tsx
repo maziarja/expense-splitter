@@ -35,13 +35,13 @@ export function RecentExpensesCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-text-primary md:text-xl">
+        <CardTitle className="text-base font-semibold text-text-primary md:text-lg">
           Recent expenses
         </CardTitle>
       </CardHeader>
       <CardContent>
         {sorted.length === 0 ? (
-          <p className="text-sm text-text-tertiary md:text-base">
+          <p className="text-xs text-text-tertiary md:text-sm">
             No expenses yet.
           </p>
         ) : (

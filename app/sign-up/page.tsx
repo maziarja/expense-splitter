@@ -4,7 +4,7 @@ export default function SignUpPage() {
   return (
     <main className="flex flex-1 items-center justify-center bg-bg-primary p-8">
       <div className="max-w-sm text-center">
-        <h1 className="text-2xl font-bold text-text-primary">Sign up</h1>
+        <h1 className="text-xl font-bold text-text-primary">Sign up</h1>
         <p className="mt-2 text-text-secondary">
           Account creation is coming in a later step. For now, explore the app
           with sample data.
@@ -15,7 +15,7 @@ export default function SignUpPage() {
         >
           Try as guest instead
         </Link>
-        <Link href="/" className="mt-2 block text-sm text-text-tertiary">
+        <Link href="/" className="mt-2 block text-xs text-text-tertiary">
           ← Back home
         </Link>
       </div>

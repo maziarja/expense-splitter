@@ -23,16 +23,16 @@ export function GroupSummaryCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-text-primary md:text-xl">
+        <CardTitle className="text-base font-semibold text-text-primary md:text-lg">
           Group summary
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div>
-          <p className="font-mono text-xl font-medium text-text-primary tabular-nums md:text-2xl">
+          <p className="font-mono text-lg font-medium text-text-primary tabular-nums md:text-xl">
             {formatCurrency(totalSpent, currency)}
           </p>
-          <p className="text-sm text-text-tertiary md:text-base">
+          <p className="text-xs text-text-tertiary md:text-sm">
             Total spent · {expenseCount} expense{expenseCount === 1 ? "" : "s"}
           </p>
         </div>
@@ -55,7 +55,7 @@ export function GroupSummaryCard({
                       {member.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="truncate text-sm text-text-primary md:text-base">
+                  <span className="truncate text-xs text-text-primary md:text-sm">
                     {member.name}
                   </span>
                 </span>

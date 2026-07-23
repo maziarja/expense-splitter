@@ -18,7 +18,7 @@ export function SettlementSuggestionsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-text-primary md:text-xl">
+        <CardTitle className="text-base font-semibold text-text-primary md:text-lg">
           Settlement suggestions
         </CardTitle>
       </CardHeader>
@@ -28,10 +28,10 @@ export function SettlementSuggestionsCard({
             <div className="flex size-10 items-center justify-center rounded-full bg-success/15">
               <CheckIcon className="size-5 text-success" aria-hidden="true" />
             </div>
-            <p className="text-base font-semibold text-text-primary">
+            <p className="text-sm font-semibold text-text-primary">
               All settled up
             </p>
-            <p className="text-sm text-text-tertiary">
+            <p className="text-xs text-text-tertiary">
               No settlements needed right now.
             </p>
           </div>
@@ -46,14 +46,14 @@ export function SettlementSuggestionsCard({
                   key={`${s.from}-${s.to}`}
                   className="flex items-center justify-between gap-2 py-2.5 md:py-3"
                 >
-                  <span className="flex items-center gap-2 text-sm text-text-secondary md:text-base">
+                  <span className="flex items-center gap-2 text-xs text-text-secondary md:text-sm">
                     <ArrowRightIcon
                       className="size-4 text-text-tertiary md:size-5"
                       aria-hidden="true"
                     />
                     {fromName} owes {toName}
                   </span>
-                  <span className="font-mono text-sm font-medium text-text-primary tabular-nums md:text-base">
+                  <span className="font-mono text-xs font-medium text-text-primary tabular-nums md:text-sm">
                     {formatCurrency(s.amount, currency)}
                   </span>
                 </li>

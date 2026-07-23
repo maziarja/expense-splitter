@@ -6,7 +6,7 @@ export default function GroupNotFound() {
       <p className="text-text-secondary">Group not found.</p>
       <Link
         href="/groups"
-        className="text-sm text-accent underline underline-offset-4"
+        className="text-xs text-accent underline underline-offset-4"
       >
         Back to your groups
       </Link>

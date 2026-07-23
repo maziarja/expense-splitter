@@ -30,7 +30,7 @@ const steps: Step[] = [
 export function HowItWorks() {
   return (
     <section className="mx-auto max-w-page px-4 pb-16 sm:px-6 lg:px-8">
-      <h2 className="text-2xl font-bold text-text-primary">How it works</h2>
+      <h2 className="text-xl font-bold text-text-primary">How it works</h2>
       <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
         {steps.map((step, i) => (
           <div
@@ -40,13 +40,13 @@ export function HowItWorks() {
                 "border-t border-border pt-6 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6",
             )}
           >
-            <p className="font-mono text-sm font-semibold text-accent">
+            <p className="font-mono text-xs font-semibold text-accent">
               {step.number}
             </p>
-            <h3 className="mt-3 text-lg font-semibold text-text-primary">
+            <h3 className="mt-3 text-base font-semibold text-text-primary">
               {step.title}
             </h3>
-            <p className="mt-2 text-sm text-text-secondary">
+            <p className="mt-2 text-xs text-text-secondary">
               {step.description}
             </p>
           </div>

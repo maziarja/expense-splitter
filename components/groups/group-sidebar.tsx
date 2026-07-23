@@ -34,13 +34,13 @@ export function GroupSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-3 py-3">
-        <span className="truncate text-base font-bold text-text-primary group-data-[collapsible=icon]:hidden">
+        <span className="truncate text-sm font-bold text-text-primary group-data-[collapsible=icon]:hidden">
           Expense Splitter
         </span>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm">Your groups</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs">Your groups</SidebarGroupLabel>
           <SidebarGroupAction
             onClick={() => {
               if (isMobile) setOpenMobile(false);
@@ -69,7 +69,7 @@ export function GroupSidebar() {
                           isActive={isActive}
                           tooltip={group.name}
                           size="lg"
-                          className="text-base group-data-[collapsible=icon]:justify-center data-[active=false]:hover:bg-bg-tertiary data-active:bg-accent/15 data-active:hover:bg-accent/25"
+                          className="text-sm group-data-[collapsible=icon]:justify-center data-[active=false]:hover:bg-bg-tertiary data-active:bg-accent/15 data-active:hover:bg-accent/25"
                         >
                           <Link
                             href={href}

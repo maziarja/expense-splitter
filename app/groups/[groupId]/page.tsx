@@ -49,7 +49,7 @@ export default function GroupDashboardPage() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-xl font-bold text-text-primary sm:text-2xl md:text-3xl">
+            <h1 className="text-lg font-bold text-text-primary sm:text-xl md:text-2xl">
               {group.name}
             </h1>
             <AvatarGroup>
@@ -65,7 +65,7 @@ export default function GroupDashboardPage() {
               ))}
             </AvatarGroup>
           </div>
-          <p className="text-sm text-text-secondary md:text-base">
+          <p className="text-xs text-text-secondary md:text-sm">
             {activeMembers.length} member
             {activeMembers.length === 1 ? "" : "s"} · {group.expenses.length}{" "}
             expense{group.expenses.length === 1 ? "" : "s"}

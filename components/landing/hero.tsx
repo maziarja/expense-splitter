@@ -8,13 +8,13 @@ export function Hero() {
   return (
     <section className="mx-auto grid max-w-page grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8">
       <div>
-        <p className="text-sm font-medium text-accent">
+        <p className="text-xs font-medium text-accent">
           For roommates, trips, and everyone in between
         </p>
-        <h1 className="mt-3 text-2xl font-extrabold text-text-primary sm:text-3xl">
+        <h1 className="mt-3 text-xl font-extrabold text-text-primary sm:text-2xl">
           Split expenses. Settle up. Stay friends.
         </h1>
-        <p className="mt-4 text-lg text-text-secondary">
+        <p className="mt-4 text-base text-text-secondary">
           No more Venmo requests, group texts, or mental math. Track shared
           costs, split them fairly, and know exactly who owes who — down to the
           cent.
@@ -23,7 +23,7 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="h-12 gap-2 px-7 text-base font-semibold"
+            className="h-12 gap-2 px-7 text-sm font-semibold"
           >
             <Link href="/groups">
               Try as Guest
@@ -34,7 +34,7 @@ export function Hero() {
             asChild
             size="lg"
             variant="outline"
-            className="h-12 px-7 text-base font-semibold"
+            className="h-12 px-7 text-sm font-semibold"
           >
             <Link href="/sign-up">Sign Up</Link>
           </Button>

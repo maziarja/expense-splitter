@@ -36,8 +36,8 @@ export function SettledCelebration() {
       <div className="flex size-12 items-center justify-center rounded-full bg-success/15">
         <PartyPopperIcon className="size-6 text-success" aria-hidden="true" />
       </div>
-      <p className="text-lg font-bold text-text-primary">All settled up!</p>
-      <p className="text-sm text-text-secondary">
+      <p className="text-base font-bold text-text-primary">All settled up!</p>
+      <p className="text-xs text-text-secondary">
         Nice — every balance is at zero.
       </p>
     </div>
