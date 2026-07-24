@@ -4,10 +4,10 @@ import { useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import GroupNotFound from "@/app/groups/[groupId]/not-found";
-import { AddMemberDialog } from "@/components/groups/add-member-dialog";
 import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
 import { GroupDashboardSkeleton } from "@/components/groups/group-dashboard-skeleton";
 import { GroupSummaryCard } from "@/components/groups/group-summary-card";
+import { MembersCard } from "@/components/groups/members-card";
 import { PersonalBalanceCard } from "@/components/groups/personal-balance-card";
 import { RecentExpensesCard } from "@/components/groups/recent-expenses-card";
 import { SettlementSuggestionsCard } from "@/components/groups/settlement-suggestions-card";
@@ -65,24 +65,18 @@ export default function GroupDashboardPage() {
                 hasExpenses={group.expenses.length > 0}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <AvatarGroup>
-                {activeMembers.map((member) => (
-                  <Avatar key={member.id}>
-                    <AvatarFallback
-                      className="text-white"
-                      style={{ backgroundColor: member.avatarColor }}
-                    >
-                      {member.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-              </AvatarGroup>
-              <AddMemberDialog
-                groupId={groupId}
-                activeMembers={activeMembers}
-              />
-            </div>
+            <AvatarGroup>
+              {activeMembers.map((member) => (
+                <Avatar key={member.id}>
+                  <AvatarFallback
+                    className="text-white"
+                    style={{ backgroundColor: member.avatarColor }}
+                  >
+                    {member.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+            </AvatarGroup>
           </div>
           <p className="text-xs text-text-secondary md:text-sm">
             {activeMembers.length} member
@@ -90,6 +84,12 @@ export default function GroupDashboardPage() {
             expense{group.expenses.length === 1 ? "" : "s"}
           </p>
         </header>
+
+        <MembersCard
+          groupId={groupId}
+          members={activeMembers}
+          youId={you?.id}
+        />
 
         {you && (
           <PersonalBalanceCard
@@ -107,6 +107,7 @@ export default function GroupDashboardPage() {
           totalSpent={totalSpent}
           expenseCount={group.expenses.length}
           currency={group.currency}
+          youId={you?.id}
         />
 
         <RecentExpensesCard

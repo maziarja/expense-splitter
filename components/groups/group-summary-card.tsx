@@ -13,12 +13,14 @@ export function GroupSummaryCard({
   totalSpent,
   expenseCount,
   currency,
+  youId,
 }: {
   members: Member[];
   memberBalances: MemberBalance[];
   totalSpent: number;
   expenseCount: number;
   currency: CurrencyCode;
+  youId?: string;
 }) {
   return (
     <Card>
@@ -57,6 +59,9 @@ export function GroupSummaryCard({
                   </Avatar>
                   <span className="truncate text-xs text-text-primary md:text-sm">
                     {member.name}
+                    {member.id === youId && (
+                      <span className="text-text-tertiary"> (You)</span>
+                    )}
                   </span>
                 </span>
                 <GroupBalanceBadge balance={balance} currency={currency} />
