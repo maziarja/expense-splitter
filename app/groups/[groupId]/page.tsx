@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import GroupNotFound from "@/app/groups/[groupId]/not-found";
+import { AddMemberDialog } from "@/components/groups/add-member-dialog";
 import { GroupDashboardSkeleton } from "@/components/groups/group-dashboard-skeleton";
 import { GroupSummaryCard } from "@/components/groups/group-summary-card";
 import { PersonalBalanceCard } from "@/components/groups/personal-balance-card";
@@ -52,18 +53,24 @@ export default function GroupDashboardPage() {
             <h1 className="text-lg font-bold text-text-primary sm:text-xl md:text-2xl">
               {group.name}
             </h1>
-            <AvatarGroup>
-              {activeMembers.map((member) => (
-                <Avatar key={member.id}>
-                  <AvatarFallback
-                    className="text-white"
-                    style={{ backgroundColor: member.avatarColor }}
-                  >
-                    {member.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </AvatarGroup>
+            <div className="flex items-center gap-2">
+              <AvatarGroup>
+                {activeMembers.map((member) => (
+                  <Avatar key={member.id}>
+                    <AvatarFallback
+                      className="text-white"
+                      style={{ backgroundColor: member.avatarColor }}
+                    >
+                      {member.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </AvatarGroup>
+              <AddMemberDialog
+                groupId={groupId}
+                activeMembers={activeMembers}
+              />
+            </div>
           </div>
           <p className="text-xs text-text-secondary md:text-sm">
             {activeMembers.length} member
