@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 
 import GroupNotFound from "@/app/groups/[groupId]/not-found";
 import { AddMemberDialog } from "@/components/groups/add-member-dialog";
+import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
 import { GroupDashboardSkeleton } from "@/components/groups/group-dashboard-skeleton";
 import { GroupSummaryCard } from "@/components/groups/group-summary-card";
 import { PersonalBalanceCard } from "@/components/groups/personal-balance-card";
@@ -50,9 +51,20 @@ export default function GroupDashboardPage() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-lg font-bold text-text-primary sm:text-xl md:text-2xl">
-              {group.name}
-            </h1>
+            <div className="flex items-center gap-1">
+              <h1 className="text-lg font-bold text-text-primary sm:text-xl md:text-2xl">
+                {group.name}
+              </h1>
+              <EditGroupDialog
+                group={{
+                  id: group.id,
+                  name: group.name,
+                  description: group.description,
+                  currency: group.currency,
+                }}
+                hasExpenses={group.expenses.length > 0}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <AvatarGroup>
                 {activeMembers.map((member) => (
