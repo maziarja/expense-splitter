@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 
 import { GroupBalanceBadge } from "@/components/groups/group-balance-badge";
 import { GuestSignupPrompt } from "@/components/groups/guest-signup-prompt";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -22,6 +22,11 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCreateGroupDialogStore } from "@/lib/data/create-group-dialog-store";
 import { useGuestGroups, useGuestReady } from "@/lib/data/guest-hooks";
 
@@ -29,27 +34,43 @@ export function GroupSidebar() {
   const pathname = usePathname();
   const ready = useGuestReady();
   const groups = useGuestGroups();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-3 py-3">
+      <SidebarHeader className="gap-3 px-3 py-3">
         <span className="truncate text-sm font-bold text-text-primary group-data-[collapsible=icon]:hidden">
           Expense Splitter
         </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              aria-label="New group"
+              className="w-full justify-start gap-2 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+              onClick={() => {
+                if (isMobile) setOpenMobile(false);
+                useCreateGroupDialogStore.getState().setOpen(true);
+              }}
+            >
+              <PlusIcon aria-hidden="true" className="shrink-0" />
+              <span className="group-data-[collapsible=icon]:hidden">
+                New group
+              </span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            hidden={state !== "collapsed" || isMobile}
+          >
+            New group
+          </TooltipContent>
+        </Tooltip>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs">Your groups</SidebarGroupLabel>
-          <SidebarGroupAction
-            onClick={() => {
-              if (isMobile) setOpenMobile(false);
-              useCreateGroupDialogStore.getState().setOpen(true);
-            }}
-          >
-            <PlusIcon aria-hidden="true" />
-            <span className="sr-only">New group</span>
-          </SidebarGroupAction>
           <SidebarGroupContent>
             <SidebarMenu>
               {!ready

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { PencilIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Field,
@@ -41,11 +39,14 @@ const CURRENCY_OPTIONS = getCurrencyOptions();
 export function EditGroupDialog({
   group,
   hasExpenses,
+  open,
+  onOpenChange,
 }: {
   group: Pick<Group, "id" | "name" | "description" | "currency">;
   hasExpenses: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<UpdateGroupInput>({
@@ -61,7 +62,7 @@ export function EditGroupDialog({
     setSubmitError(null);
     try {
       await guestDataAccess.updateGroup(group.id, values);
-      setOpen(false);
+      onOpenChange(false);
     } catch {
       setSubmitError("Couldn't save changes. Please try again.");
     }
@@ -71,7 +72,7 @@ export function EditGroupDialog({
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        setOpen(next);
+        onOpenChange(next);
         if (next) {
           form.reset({
             name: group.name,
@@ -83,12 +84,6 @@ export function EditGroupDialog({
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon-sm">
-          <PencilIcon aria-hidden="true" />
-          <span className="sr-only">Edit group</span>
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit group</DialogTitle>

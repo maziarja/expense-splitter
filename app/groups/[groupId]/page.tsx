@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import GroupNotFound from "@/app/groups/[groupId]/not-found";
-import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
+import { GroupActionsMenu } from "@/components/groups/group-actions-menu";
 import { GroupDashboardSkeleton } from "@/components/groups/group-dashboard-skeleton";
 import { GroupSummaryCard } from "@/components/groups/group-summary-card";
 import { MembersCard } from "@/components/groups/members-card";
@@ -55,15 +55,17 @@ export default function GroupDashboardPage() {
               <h1 className="text-lg font-bold text-text-primary sm:text-xl md:text-2xl">
                 {group.name}
               </h1>
-              <EditGroupDialog
-                group={{
-                  id: group.id,
-                  name: group.name,
-                  description: group.description,
-                  currency: group.currency,
-                }}
-                hasExpenses={group.expenses.length > 0}
-              />
+              <div className="pt-1">
+                <GroupActionsMenu
+                  group={{
+                    id: group.id,
+                    name: group.name,
+                    description: group.description,
+                    currency: group.currency,
+                  }}
+                  hasExpenses={group.expenses.length > 0}
+                />
+              </div>
             </div>
             <AvatarGroup>
               {activeMembers.map((member) => (
