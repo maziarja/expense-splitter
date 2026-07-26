@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Trash2Icon } from "lucide-react";
 
 import { AddExpenseForm } from "@/components/groups/add-expense-form";
 import { CategoryIcon } from "@/components/groups/category-icon";
+import { DeleteExpenseDialog } from "@/components/groups/delete-expense-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ export function ExpenseListItem({
 }) {
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const expenseDate = new Date(expense.date);
   const splitTypeLabel = SPLIT_TYPE_LABELS[expense.splitType];
 
@@ -100,6 +102,23 @@ export function ExpenseListItem({
         <PencilIcon aria-hidden="true" />
         <span className="sr-only">Edit expense</span>
       </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        className="shrink-0 text-destructive hover:text-destructive"
+        onClick={() => setIsDeleting(true)}
+      >
+        <Trash2Icon aria-hidden="true" />
+        <span className="sr-only">Delete expense</span>
+      </Button>
+      <DeleteExpenseDialog
+        groupId={groupId}
+        expenseId={expense.id}
+        expenseDescription={expense.description}
+        open={isDeleting}
+        onOpenChange={setIsDeleting}
+      />
     </li>
   );
 
