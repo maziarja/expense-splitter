@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAddExpenseForm } from "@/hooks/use-add-expense-form";
-import type { Member } from "@/lib/data/types";
+import type { Expense, Member } from "@/lib/data/types";
 import { PREDEFINED_CATEGORIES } from "@/lib/splits/constants";
 import type { CurrencyCode, PredefinedCategory } from "@/lib/splits/constants";
 import { getCurrencyOptions } from "@/lib/splits/currency";
@@ -30,6 +30,7 @@ export function AddExpenseForm({
   activeMembers,
   groupCurrency,
   defaultPayerId,
+  expense,
   onSuccess,
   onCancel,
 }: {
@@ -37,6 +38,7 @@ export function AddExpenseForm({
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
   defaultPayerId?: string;
+  expense?: Expense;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -78,6 +80,7 @@ export function AddExpenseForm({
     activeMembers,
     groupCurrency,
     defaultPayerId,
+    expense,
     onSuccess,
   });
 
@@ -233,7 +236,13 @@ export function AddExpenseForm({
           Cancel
         </Button>
         <Button type="submit" disabled={pending}>
-          {pending ? "Adding…" : "Add expense"}
+          {expense
+            ? pending
+              ? "Saving…"
+              : "Save changes"
+            : pending
+              ? "Adding…"
+              : "Add expense"}
         </Button>
       </div>
     </form>

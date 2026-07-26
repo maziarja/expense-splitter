@@ -3,8 +3,12 @@ import { format, isSameDay, parseISO } from "date-fns";
 
 import { createExpenseInputSchema } from "@/lib/data/data-access";
 import { guestDataAccess } from "@/lib/data/guest-store";
-import type { Member } from "@/lib/data/types";
-import type { CurrencyCode, PredefinedCategory } from "@/lib/splits/constants";
+import type { Expense, Member } from "@/lib/data/types";
+import {
+  PREDEFINED_CATEGORIES,
+  type CurrencyCode,
+  type PredefinedCategory,
+} from "@/lib/splits/constants";
 import { formatCurrency, fromMinorUnits } from "@/lib/splits/currency";
 import { calculateEqualSplit } from "@/lib/splits/equal";
 import { validateExactSplit } from "@/lib/splits/exact";
@@ -35,6 +39,36 @@ function sanitizeDecimalInput(value: string): string {
   );
 }
 
+function dateValueFromIso(iso: string): string {
+  return format(parseISO(iso), "yyyy-MM-dd");
+}
+
+function categoryFromExpense(expense: Expense): PredefinedCategory {
+  return (PREDEFINED_CATEGORIES as readonly string[]).includes(expense.category)
+    ? (expense.category as PredefinedCategory)
+    : "Other";
+}
+
+function splitValuesFromExpense(expense: Expense): {
+  exactAmounts: Record<string, string>;
+  percentages: Record<string, string>;
+  shareCounts: Record<string, string>;
+} {
+  const exactAmounts: Record<string, string> = {};
+  const percentages: Record<string, string> = {};
+  const shareCounts: Record<string, string> = {};
+  for (const split of expense.splits) {
+    if (expense.splitType === "exact") {
+      exactAmounts[split.memberId] = String(split.amount);
+    } else if (expense.splitType === "percentage" && split.percentage) {
+      percentages[split.memberId] = String(split.percentage);
+    } else if (expense.splitType === "shares" && split.shares) {
+      shareCounts[split.memberId] = String(split.shares);
+    }
+  }
+  return { exactAmounts, percentages, shareCounts };
+}
+
 type SplitComputation = { splits: Split[]; error: string | null };
 
 export function useAddExpenseForm({
@@ -42,30 +76,56 @@ export function useAddExpenseForm({
   activeMembers,
   groupCurrency,
   defaultPayerId,
+  expense,
   onSuccess,
 }: {
   groupId: string;
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
   defaultPayerId?: string;
+  expense?: Expense;
   onSuccess: () => void;
 }) {
-  const [amountInput, setAmountInput] = useState("");
-  const [description, setDescription] = useState("");
-  const [currency, setCurrency] = useState<CurrencyCode>(groupCurrency);
-  const [exchangeRateInput, setExchangeRateInput] = useState("1");
-  const [paidBy, setPaidBy] = useState(
-    activeMembers.find((m) => m.id === defaultPayerId)?.id ?? "",
+  const [amountInput, setAmountInput] = useState(() =>
+    expense ? String(expense.amount) : "",
   );
-  const [category, setCategory] = useState<PredefinedCategory>("Other");
-  const [date, setDate] = useState(todayDateValue());
-  const [splitType, setSplitType] = useState<SplitType>("equal");
-  const [participantIds, setParticipantIds] = useState<string[]>(
-    activeMembers.map((m) => m.id),
+  const [description, setDescription] = useState(
+    () => expense?.description ?? "",
   );
-  const [exactAmounts, setExactAmounts] = useState<Record<string, string>>({});
-  const [percentages, setPercentages] = useState<Record<string, string>>({});
-  const [shareCounts, setShareCounts] = useState<Record<string, string>>({});
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    () => expense?.currency ?? groupCurrency,
+  );
+  const [exchangeRateInput, setExchangeRateInput] = useState(() =>
+    expense ? String(expense.exchangeRate) : "1",
+  );
+  const [paidBy, setPaidBy] = useState(() =>
+    expense
+      ? expense.paidBy
+      : (activeMembers.find((m) => m.id === defaultPayerId)?.id ?? ""),
+  );
+  const [category, setCategory] = useState<PredefinedCategory>(() =>
+    expense ? categoryFromExpense(expense) : "Other",
+  );
+  const [date, setDate] = useState(() =>
+    expense ? dateValueFromIso(expense.date) : todayDateValue(),
+  );
+  const [splitType, setSplitType] = useState<SplitType>(
+    () => expense?.splitType ?? "equal",
+  );
+  const [participantIds, setParticipantIds] = useState<string[]>(() =>
+    expense
+      ? expense.splits.map((s) => s.memberId)
+      : activeMembers.map((m) => m.id),
+  );
+  const [exactAmounts, setExactAmounts] = useState<Record<string, string>>(
+    () => (expense ? splitValuesFromExpense(expense).exactAmounts : {}),
+  );
+  const [percentages, setPercentages] = useState<Record<string, string>>(() =>
+    expense ? splitValuesFromExpense(expense).percentages : {},
+  );
+  const [shareCounts, setShareCounts] = useState<Record<string, string>>(() =>
+    expense ? splitValuesFromExpense(expense).shareCounts : {},
+  );
   const [touched, setTouched] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -228,7 +288,11 @@ export function useAddExpenseForm({
 
     setPending(true);
     try {
-      await guestDataAccess.createExpense(groupId, parsed.data);
+      if (expense) {
+        await guestDataAccess.updateExpense(groupId, expense.id, parsed.data);
+      } else {
+        await guestDataAccess.createExpense(groupId, parsed.data);
+      }
       onSuccess();
     } catch {
       setSubmitError("Couldn't save this expense. Please try again.");

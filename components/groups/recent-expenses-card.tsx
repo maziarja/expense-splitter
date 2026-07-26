@@ -67,6 +67,9 @@ export function RecentExpensesCard({
                 key={expense.id}
                 expense={expense}
                 payer={membersById.get(expense.paidBy)}
+                groupId={groupId}
+                activeMembers={activeMembers}
+                groupCurrency={groupCurrency}
               />
             ))}
           </ul>

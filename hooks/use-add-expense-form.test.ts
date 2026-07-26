@@ -2,20 +2,23 @@
  * @vitest-environment jsdom
  */
 import { act, renderHook } from "@testing-library/react";
+import { format, parseISO } from "date-fns";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { guestDataAccess } from "@/lib/data/guest-store";
-import type { Member } from "@/lib/data/types";
+import type { Expense, Member } from "@/lib/data/types";
 
 import { useAddExpenseForm } from "./use-add-expense-form";
 
 vi.mock("@/lib/data/guest-store", () => ({
   guestDataAccess: {
     createExpense: vi.fn(),
+    updateExpense: vi.fn(),
   },
 }));
 
 const createExpense = vi.mocked(guestDataAccess.createExpense);
+const updateExpense = vi.mocked(guestDataAccess.updateExpense);
 
 type SubmitHandler = ReturnType<typeof useAddExpenseForm>["handleSubmit"];
 function fakeSubmitEvent() {
@@ -40,9 +43,29 @@ const alex = makeMember("alex", "Alex Chen");
 const jordan = makeMember("jordan", "Jordan Park");
 const activeMembers = [alex, jordan];
 
+function makeExpense(overrides?: Partial<Expense>): Expense {
+  return {
+    id: "expense-1",
+    description: "Groceries",
+    amount: 60,
+    currency: "USD",
+    exchangeRate: 1,
+    paidBy: jordan.id,
+    splitType: "shares",
+    splits: [
+      { memberId: alex.id, amount: 20, shares: 1 },
+      { memberId: jordan.id, amount: 40, shares: 2 },
+    ],
+    date: "2026-01-15T12:00:00.000Z",
+    category: "Groceries",
+    ...overrides,
+  };
+}
+
 function setup(overrides?: {
   defaultPayerId?: string;
   groupCurrency?: "USD" | "EUR";
+  expense?: Expense;
   onSuccess?: () => void;
 }) {
   const onSuccess = overrides?.onSuccess ?? vi.fn();
@@ -52,6 +75,7 @@ function setup(overrides?: {
       activeMembers,
       groupCurrency: overrides?.groupCurrency ?? "USD",
       defaultPayerId: overrides?.defaultPayerId ?? alex.id,
+      expense: overrides?.expense,
       onSuccess,
     }),
   );
@@ -73,6 +97,7 @@ function fillValidEqualSplit(result: {
 beforeEach(() => {
   vi.clearAllMocks();
   createExpense.mockResolvedValue({} as never);
+  updateExpense.mockResolvedValue({} as never);
 });
 
 describe("initial state", () => {
@@ -327,5 +352,106 @@ describe("handleSubmit success", () => {
     );
     expect(result.current.pending).toBe(false);
     expect(onSuccess).not.toHaveBeenCalled();
+  });
+});
+
+describe("edit mode", () => {
+  it("seeds every field from the given expense", () => {
+    const expense = makeExpense();
+    const { result } = setup({ expense });
+
+    expect(result.current.amountInput).toBe("60");
+    expect(result.current.description).toBe("Groceries");
+    expect(result.current.currency).toBe("USD");
+    expect(result.current.exchangeRateInput).toBe("1");
+    expect(result.current.paidBy).toBe(jordan.id);
+    expect(result.current.category).toBe("Groceries");
+    // Computed the same way the hook derives it, rather than a hardcoded
+    // string, so this doesn't depend on the test runner's local timezone.
+    expect(result.current.date).toBe(
+      format(parseISO(expense.date), "yyyy-MM-dd"),
+    );
+    expect(result.current.splitType).toBe("shares");
+    expect(result.current.participantIds).toEqual([alex.id, jordan.id]);
+    expect(result.current.shareCounts).toEqual({
+      [alex.id]: "1",
+      [jordan.id]: "2",
+    });
+    // Only the matching record is seeded — the others start empty, same as
+    // a fresh form, until the user switches to that split type.
+    expect(result.current.exactAmounts).toEqual({});
+    expect(result.current.percentages).toEqual({});
+  });
+
+  it("falls back to Other when the stored category isn't one of the predefined options", () => {
+    const expense = makeExpense({ category: "Some Legacy Category" });
+    const { result } = setup({ expense });
+    expect(result.current.category).toBe("Other");
+  });
+
+  it("seeds exactAmounts for an exact-split expense", () => {
+    const expense = makeExpense({
+      splitType: "exact",
+      splits: [
+        { memberId: alex.id, amount: 25 },
+        { memberId: jordan.id, amount: 35 },
+      ],
+    });
+    const { result } = setup({ expense });
+    expect(result.current.exactAmounts).toEqual({
+      [alex.id]: "25",
+      [jordan.id]: "35",
+    });
+  });
+
+  it("seeds percentages for a percentage-split expense", () => {
+    const expense = makeExpense({
+      splitType: "percentage",
+      splits: [
+        { memberId: alex.id, amount: 30, percentage: 50 },
+        { memberId: jordan.id, amount: 30, percentage: 50 },
+      ],
+    });
+    const { result } = setup({ expense });
+    expect(result.current.percentages).toEqual({
+      [alex.id]: "50",
+      [jordan.id]: "50",
+    });
+  });
+
+  it("calls updateExpense with the expense's id instead of createExpense", async () => {
+    const expense = makeExpense();
+    const { result, onSuccess } = setup({ expense });
+
+    await act(async () => {
+      await result.current.handleSubmit(fakeSubmitEvent());
+    });
+
+    expect(createExpense).not.toHaveBeenCalled();
+    expect(updateExpense).toHaveBeenCalledTimes(1);
+    const [groupId, expenseId, input] = updateExpense.mock.calls[0]!;
+    expect(groupId).toBe("group-1");
+    expect(expenseId).toBe("expense-1");
+    expect(input).toMatchObject({
+      description: "Groceries",
+      amount: 60,
+      paidBy: jordan.id,
+      splitType: "shares",
+    });
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it("still blocks submission (and never calls updateExpense) when a field becomes invalid", async () => {
+    const expense = makeExpense();
+    const { result } = setup({ expense });
+
+    act(() => {
+      result.current.setDescription("");
+    });
+    await act(async () => {
+      await result.current.handleSubmit(fakeSubmitEvent());
+    });
+
+    expect(updateExpense).not.toHaveBeenCalled();
   });
 });
