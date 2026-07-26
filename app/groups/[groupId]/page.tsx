@@ -113,8 +113,12 @@ export default function GroupDashboardPage() {
         />
 
         <RecentExpensesCard
+          groupId={groupId}
           expenses={group.expenses}
           membersById={membersById}
+          activeMembers={activeMembers}
+          groupCurrency={group.currency}
+          defaultPayerId={you?.id}
         />
 
         <SettlementSuggestionsCard

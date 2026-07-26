@@ -1,0 +1,291 @@
+import { useMemo, useState } from "react";
+import { format, isSameDay, parseISO } from "date-fns";
+
+import { createExpenseInputSchema } from "@/lib/data/data-access";
+import { guestDataAccess } from "@/lib/data/guest-store";
+import type { Member } from "@/lib/data/types";
+import type { CurrencyCode, PredefinedCategory } from "@/lib/splits/constants";
+import { formatCurrency, fromMinorUnits } from "@/lib/splits/currency";
+import { calculateEqualSplit } from "@/lib/splits/equal";
+import { validateExactSplit } from "@/lib/splits/exact";
+import {
+  calculatePercentageSplit,
+  validatePercentageSplit,
+} from "@/lib/splits/percentage";
+import type { Split, SplitType } from "@/lib/splits/schema";
+import { calculateSharesSplit } from "@/lib/splits/shares";
+
+function todayDateValue(): string {
+  return format(new Date(), "yyyy-MM-dd");
+}
+
+function dateInputToIso(dateValue: string): string {
+  const parsed = parseISO(dateValue);
+  const now = new Date();
+  return (isSameDay(parsed, now) ? now : parsed).toISOString();
+}
+
+function sanitizeDecimalInput(value: string): string {
+  const digitsAndDot = value.replace(/[^0-9.]/g, "");
+  const firstDot = digitsAndDot.indexOf(".");
+  if (firstDot === -1) return digitsAndDot;
+  return (
+    digitsAndDot.slice(0, firstDot + 1) +
+    digitsAndDot.slice(firstDot + 1).replace(/\./g, "")
+  );
+}
+
+type SplitComputation = { splits: Split[]; error: string | null };
+
+export function useAddExpenseForm({
+  groupId,
+  activeMembers,
+  groupCurrency,
+  defaultPayerId,
+  onSuccess,
+}: {
+  groupId: string;
+  activeMembers: Member[];
+  groupCurrency: CurrencyCode;
+  defaultPayerId?: string;
+  onSuccess: () => void;
+}) {
+  const [amountInput, setAmountInput] = useState("");
+  const [description, setDescription] = useState("");
+  const [currency, setCurrency] = useState<CurrencyCode>(groupCurrency);
+  const [exchangeRateInput, setExchangeRateInput] = useState("1");
+  const [paidBy, setPaidBy] = useState(
+    activeMembers.find((m) => m.id === defaultPayerId)?.id ?? "",
+  );
+  const [category, setCategory] = useState<PredefinedCategory>("Other");
+  const [date, setDate] = useState(todayDateValue());
+  const [splitType, setSplitType] = useState<SplitType>("equal");
+  const [participantIds, setParticipantIds] = useState<string[]>(
+    activeMembers.map((m) => m.id),
+  );
+  const [exactAmounts, setExactAmounts] = useState<Record<string, string>>({});
+  const [percentages, setPercentages] = useState<Record<string, string>>({});
+  const [shareCounts, setShareCounts] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const amount = parseFloat(amountInput);
+  const hasValidAmount = Number.isFinite(amount) && amount > 0;
+  const exchangeRate = parseFloat(exchangeRateInput);
+
+  function toggleParticipant(memberId: string) {
+    setParticipantIds((prev) =>
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : [...prev, memberId],
+    );
+  }
+
+  function selectPayer(memberId: string) {
+    setPaidBy(memberId);
+
+    setParticipantIds((prev) =>
+      prev.includes(memberId) ? prev : [...prev, memberId],
+    );
+  }
+
+  const computation: SplitComputation | null = useMemo(() => {
+    if (!hasValidAmount || participantIds.length === 0) return null;
+
+    if (splitType === "equal") {
+      return {
+        splits: calculateEqualSplit({ amount, currency, participantIds }),
+        error: null,
+      };
+    }
+
+    if (splitType === "exact") {
+      const splits: Split[] = participantIds.map((id) => ({
+        memberId: id,
+        amount: parseFloat(exactAmounts[id] ?? "") || 0,
+      }));
+      const { valid, differenceMinorUnits } = validateExactSplit(
+        amount,
+        currency,
+        splits.map((s) => s.amount),
+      );
+      if (valid) return { splits, error: null };
+      const diff = fromMinorUnits(Math.abs(differenceMinorUnits), currency);
+      const word = differenceMinorUnits > 0 ? "over" : "under";
+      return {
+        splits,
+        error: `Splits are ${formatCurrency(diff, currency)} ${word} the total`,
+      };
+    }
+
+    if (splitType === "percentage") {
+      const values = participantIds.map(
+        (id) => parseFloat(percentages[id] ?? "") || 0,
+      );
+      const { valid, sum } = validatePercentageSplit(values);
+      if (!valid) {
+        return {
+          splits: [],
+          error: `Percentages sum to ${sum}%, not 100%`,
+        };
+      }
+      const splits = calculatePercentageSplit({
+        amount,
+        currency,
+        splits: participantIds.map((id, i) => ({
+          memberId: id,
+          percentage: values[i],
+        })),
+      });
+      return { splits, error: null };
+    }
+
+    // shares
+    const shareValues = participantIds.map(
+      (id) => parseFloat(shareCounts[id] ?? "") || 0,
+    );
+    const totalShares = shareValues.reduce((sum, v) => sum + v, 0);
+    if (totalShares <= 0) {
+      return { splits: [], error: "Enter at least one share" };
+    }
+    const splits = calculateSharesSplit({
+      amount,
+      currency,
+      splits: participantIds.map((id, i) => ({
+        memberId: id,
+        shares: shareValues[i],
+      })),
+    });
+    return { splits, error: null };
+  }, [
+    hasValidAmount,
+    amount,
+    currency,
+    participantIds,
+    splitType,
+    exactAmounts,
+    percentages,
+    shareCounts,
+  ]);
+
+  const splitAmountByMember = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const split of computation?.splits ?? []) {
+      map.set(split.memberId, split.amount);
+    }
+    return map;
+  }, [computation]);
+
+  const paidByError = !paidBy
+    ? touched
+      ? "Choose who paid."
+      : null
+    : !participantIds.includes(paidBy)
+      ? "The payer must be included in the split."
+      : null;
+
+  const splitSectionError =
+    participantIds.length === 0
+      ? "Select at least one person to split with."
+      : (computation?.error ?? null);
+
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setTouched(true);
+    setSubmitError(null);
+
+    if (!description.trim()) return;
+    if (!hasValidAmount) return;
+    if (!paidBy) return;
+    if (participantIds.length === 0) return;
+    if (!participantIds.includes(paidBy)) return;
+    if (!computation || computation.error) return;
+
+    const input = {
+      description: description.trim(),
+      amount,
+      currency,
+      exchangeRate:
+        currency === groupCurrency
+          ? 1
+          : Number.isFinite(exchangeRate) && exchangeRate > 0
+            ? exchangeRate
+            : 1,
+      rateIsUserSet: currency === groupCurrency ? undefined : true,
+      paidBy,
+      splitType,
+      splits: computation.splits,
+      date: dateInputToIso(date),
+      category,
+    };
+
+    const parsed = createExpenseInputSchema.safeParse(input);
+    if (!parsed.success) {
+      setSubmitError(parsed.error.issues[0]?.message ?? "Invalid expense.");
+      return;
+    }
+
+    setPending(true);
+    try {
+      await guestDataAccess.createExpense(groupId, parsed.data);
+      onSuccess();
+    } catch {
+      setSubmitError("Couldn't save this expense. Please try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return {
+    amountInput,
+    onAmountInputChange: (value: string) =>
+      setAmountInput(sanitizeDecimalInput(value)),
+    description,
+    setDescription,
+    currency,
+    onCurrencyChange: (next: CurrencyCode) => {
+      setCurrency(next);
+      if (next === groupCurrency) setExchangeRateInput("1");
+    },
+    exchangeRateInput,
+    onExchangeRateInputChange: (value: string) =>
+      setExchangeRateInput(sanitizeDecimalInput(value)),
+    paidBy,
+    selectPayer,
+    category,
+    setCategory,
+    date,
+    setDate,
+    splitType,
+    setSplitType,
+    participantIds,
+    toggleParticipant,
+    exactAmounts,
+    onExactAmountChange: (memberId: string, value: string) =>
+      setExactAmounts((prev) => ({
+        ...prev,
+        [memberId]: sanitizeDecimalInput(value),
+      })),
+    percentages,
+    onPercentageChange: (memberId: string, value: string) =>
+      setPercentages((prev) => ({
+        ...prev,
+        [memberId]: sanitizeDecimalInput(value),
+      })),
+    shareCounts,
+    onShareCountChange: (memberId: string, value: string) =>
+      setShareCounts((prev) => ({
+        ...prev,
+        [memberId]: sanitizeDecimalInput(value),
+      })),
+    touched,
+    hasValidAmount,
+    paidByError,
+    splitSectionError,
+    splitAmountByMember,
+    submitError,
+    pending,
+    handleSubmit,
+  };
+}

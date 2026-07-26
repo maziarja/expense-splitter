@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { AddExpensePanel } from "@/components/groups/add-expense-panel";
 import { ExpenseListItem } from "@/components/groups/expense-list-item";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,15 +13,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { Expense, Member } from "@/lib/data/types";
+import type { CurrencyCode } from "@/lib/splits/constants";
 
 const VISIBLE_COUNT = 5;
 
 export function RecentExpensesCard({
+  groupId,
   expenses,
   membersById,
+  activeMembers,
+  groupCurrency,
+  defaultPayerId,
 }: {
+  groupId: string;
   expenses: Expense[];
   membersById: Map<string, Member>;
+  activeMembers: Member[];
+  groupCurrency: CurrencyCode;
+  defaultPayerId?: string;
 }) {
   const sorted = useMemo(
     () =>
@@ -39,7 +49,13 @@ export function RecentExpensesCard({
           Recent expenses
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
+        <AddExpensePanel
+          groupId={groupId}
+          activeMembers={activeMembers}
+          groupCurrency={groupCurrency}
+          defaultPayerId={defaultPayerId}
+        />
         {sorted.length === 0 ? (
           <p className="text-xs text-text-tertiary md:text-sm">
             No expenses yet.

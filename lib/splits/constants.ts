@@ -29,3 +29,5 @@ export const PREDEFINED_CATEGORIES = [
   "Groceries",
   "Other",
 ] as const;
+
+export type PredefinedCategory = (typeof PREDEFINED_CATEGORIES)[number];

@@ -47,14 +47,27 @@ export function formatCurrency(amount: number, currency: CurrencyCode): string {
   }).format(amount);
 }
 
+// Not derived from Intl.NumberFormat: in the en-US locale it resolves
+// several of these to a country-prefixed variant (CAD -> "CA$", AUD -> "A$",
+// CNY -> "CN¥", MXN -> "MX$") or, for CHF, to the code itself — every one of
+// which duplicates letters from the currency code shown right next to it
+// (e.g. "CA$ CAD", "CHF CHF"). A fixed lookup for this fixed 10-currency set
+// avoids that entirely.
+const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  CAD: "$",
+  AUD: "$",
+  CHF: "Fr.",
+  CNY: "¥",
+  INR: "₹",
+  MXN: "$",
+};
+
 export function getCurrencySymbol(currency: CurrencyCode): string {
-  const part = new Intl.NumberFormat(CURRENCY_LOCALE, {
-    style: "currency",
-    currency,
-  })
-    .formatToParts(0)
-    .find((p) => p.type === "currency");
-  return part?.value ?? currency;
+  return CURRENCY_SYMBOLS[currency];
 }
 
 const CURRENCY_NAMES: Record<CurrencyCode, string> = {

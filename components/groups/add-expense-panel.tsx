@@ -1,0 +1,76 @@
+"use client";
+
+import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+
+import { AddExpenseForm } from "@/components/groups/add-expense-form";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import type { Member } from "@/lib/data/types";
+import type { CurrencyCode } from "@/lib/splits/constants";
+
+export function AddExpensePanel({
+  groupId,
+  activeMembers,
+  groupCurrency,
+  defaultPayerId,
+}: {
+  groupId: string;
+  activeMembers: Member[];
+  groupCurrency: CurrencyCode;
+  defaultPayerId?: string;
+}) {
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+
+  const form = (
+    <AddExpenseForm
+      groupId={groupId}
+      activeMembers={activeMembers}
+      groupCurrency={groupCurrency}
+      defaultPayerId={defaultPayerId}
+      onSuccess={() => setOpen(false)}
+      onCancel={() => setOpen(false)}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <Button size="sm" onClick={() => setOpen(true)}>
+          <PlusIcon aria-hidden="true" />
+          Add expense
+        </Button>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Add expense</SheetTitle>
+              <SheetDescription>
+                Log a new expense and split it with the group.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-4 pb-4">{form}</div>
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
+  if (!open) {
+    return (
+      <Button size="sm" onClick={() => setOpen(true)}>
+        <PlusIcon aria-hidden="true" />
+        Add expense
+      </Button>
+    );
+  }
+
+  return form;
+}
