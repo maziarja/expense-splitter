@@ -1,15 +1,20 @@
 import { useMemo, useState } from "react";
-import { format, isSameDay, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 import { createExpenseInputSchema } from "@/lib/data/data-access";
 import { guestDataAccess } from "@/lib/data/guest-store";
 import type { Expense, Member } from "@/lib/data/types";
+import { dateInputToIso, todayDateValue } from "@/lib/forms/date-input";
 import {
   PREDEFINED_CATEGORIES,
   type CurrencyCode,
   type PredefinedCategory,
 } from "@/lib/splits/constants";
-import { formatCurrency, fromMinorUnits } from "@/lib/splits/currency";
+import {
+  formatCurrency,
+  fromMinorUnits,
+  sanitizeDecimalInput,
+} from "@/lib/splits/currency";
 import { calculateEqualSplit } from "@/lib/splits/equal";
 import { validateExactSplit } from "@/lib/splits/exact";
 import {
@@ -18,26 +23,6 @@ import {
 } from "@/lib/splits/percentage";
 import type { Split, SplitType } from "@/lib/splits/schema";
 import { calculateSharesSplit } from "@/lib/splits/shares";
-
-function todayDateValue(): string {
-  return format(new Date(), "yyyy-MM-dd");
-}
-
-function dateInputToIso(dateValue: string): string {
-  const parsed = parseISO(dateValue);
-  const now = new Date();
-  return (isSameDay(parsed, now) ? now : parsed).toISOString();
-}
-
-function sanitizeDecimalInput(value: string): string {
-  const digitsAndDot = value.replace(/[^0-9.]/g, "");
-  const firstDot = digitsAndDot.indexOf(".");
-  if (firstDot === -1) return digitsAndDot;
-  return (
-    digitsAndDot.slice(0, firstDot + 1) +
-    digitsAndDot.slice(firstDot + 1).replace(/\./g, "")
-  );
-}
 
 function dateValueFromIso(iso: string): string {
   return format(parseISO(iso), "yyyy-MM-dd");

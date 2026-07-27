@@ -1,16 +1,75 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowRightIcon, CheckIcon } from "lucide-react";
 
+import { RecordSettlementDialog } from "@/components/groups/settlement/record-settlement-dialog";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Member } from "@/lib/data/types";
 import type { SettlementSuggestion } from "@/lib/splits/balance";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency } from "@/lib/splits/currency";
 
+function SettlementSuggestionRow({
+  groupId,
+  suggestion,
+  membersById,
+  currency,
+}: {
+  groupId: string;
+  suggestion: SettlementSuggestion;
+  membersById: Map<string, Member>;
+  currency: CurrencyCode;
+}) {
+  const [isSettling, setIsSettling] = useState(false);
+  const fromName = membersById.get(suggestion.from)?.name ?? "Unknown member";
+  const toName = membersById.get(suggestion.to)?.name ?? "Unknown member";
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 py-2.5 md:py-3">
+      <span className="flex items-center gap-2 text-xs text-text-secondary md:text-sm">
+        <ArrowRightIcon
+          className="size-4 text-text-tertiary md:size-5"
+          aria-hidden="true"
+        />
+        {fromName} owes {toName}
+      </span>
+      <div className="flex items-center gap-3">
+        <span className="font-mono text-xs font-medium text-text-primary tabular-nums md:text-sm">
+          {formatCurrency(suggestion.amount, currency)}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsSettling(true)}
+        >
+          Settle up
+        </Button>
+      </div>
+      <RecordSettlementDialog
+        groupId={groupId}
+        from={suggestion.from}
+        to={suggestion.to}
+        fromName={fromName}
+        toName={toName}
+        amount={suggestion.amount}
+        currency={currency}
+        open={isSettling}
+        onOpenChange={setIsSettling}
+      />
+    </li>
+  );
+}
+
 export function SettlementSuggestionsCard({
+  groupId,
   settlementSuggestions,
   membersById,
   currency,
 }: {
+  groupId: string;
   settlementSuggestions: SettlementSuggestion[];
   membersById: Map<string, Member>;
   currency: CurrencyCode;
@@ -37,28 +96,15 @@ export function SettlementSuggestionsCard({
           </div>
         ) : (
           <ul className="flex flex-col divide-y divide-border-subtle">
-            {settlementSuggestions.map((s) => {
-              const fromName =
-                membersById.get(s.from)?.name ?? "Unknown member";
-              const toName = membersById.get(s.to)?.name ?? "Unknown member";
-              return (
-                <li
-                  key={`${s.from}-${s.to}`}
-                  className="flex items-center justify-between gap-2 py-2.5 md:py-3"
-                >
-                  <span className="flex items-center gap-2 text-xs text-text-secondary md:text-sm">
-                    <ArrowRightIcon
-                      className="size-4 text-text-tertiary md:size-5"
-                      aria-hidden="true"
-                    />
-                    {fromName} owes {toName}
-                  </span>
-                  <span className="font-mono text-xs font-medium text-text-primary tabular-nums md:text-sm">
-                    {formatCurrency(s.amount, currency)}
-                  </span>
-                </li>
-              );
-            })}
+            {settlementSuggestions.map((s) => (
+              <SettlementSuggestionRow
+                key={`${s.from}-${s.to}`}
+                groupId={groupId}
+                suggestion={s}
+                membersById={membersById}
+                currency={currency}
+              />
+            ))}
           </ul>
         )}
       </CardContent>

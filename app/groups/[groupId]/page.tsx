@@ -95,6 +95,7 @@ export default function GroupDashboardPage() {
 
         {you && (
           <PersonalBalanceCard
+            groupId={groupId}
             youId={you.id}
             yourBalance={yourBalance}
             settlementSuggestions={group.settlementSuggestions}
@@ -122,6 +123,7 @@ export default function GroupDashboardPage() {
         />
 
         <SettlementSuggestionsCard
+          groupId={groupId}
           settlementSuggestions={group.settlementSuggestions}
           membersById={membersById}
           currency={group.currency}

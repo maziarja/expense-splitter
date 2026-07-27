@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 
 import { SettledCelebration } from "@/components/landing/settled-celebration";
+import { RecordSettlementDialog } from "@/components/groups/settlement/record-settlement-dialog";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { Member } from "@/lib/data/types";
@@ -9,13 +14,85 @@ import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency } from "@/lib/splits/currency";
 import { cn } from "@/lib/utils";
 
+function PersonalBalanceRow({
+  groupId,
+  suggestion,
+  youId,
+  membersById,
+  currency,
+}: {
+  groupId: string;
+  suggestion: SettlementSuggestion;
+  youId: string;
+  membersById: Map<string, Member>;
+  currency: CurrencyCode;
+}) {
+  const [isSettling, setIsSettling] = useState(false);
+  const youAreOwed = suggestion.to === youId;
+  const otherId = youAreOwed ? suggestion.from : suggestion.to;
+  const otherName = membersById.get(otherId)?.name ?? "Unknown member";
+  const Icon = youAreOwed ? ArrowUpRightIcon : ArrowDownRightIcon;
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 rounded-md px-4 py-3",
+        youAreOwed ? "bg-owed-subtle" : "bg-owe-subtle",
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-xs text-text-secondary md:text-sm">
+          <Icon
+            className={cn(
+              "size-4 md:size-5",
+              youAreOwed ? "text-owed-strong" : "text-owe-strong",
+            )}
+            aria-hidden="true"
+          />
+          {youAreOwed ? `${otherName} owes you` : `You owe ${otherName}`}
+        </span>
+        <span
+          className={cn(
+            "font-mono text-lg font-medium tabular-nums md:text-xl",
+            youAreOwed ? "text-owed-strong" : "text-owe-strong",
+          )}
+        >
+          {formatCurrency(suggestion.amount, currency)}
+        </span>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={() => setIsSettling(true)}
+      >
+        Settle up
+      </Button>
+      <RecordSettlementDialog
+        groupId={groupId}
+        from={suggestion.from}
+        to={suggestion.to}
+        fromName={youAreOwed ? otherName : "You"}
+        toName={youAreOwed ? "You" : otherName}
+        amount={suggestion.amount}
+        currency={currency}
+        open={isSettling}
+        onOpenChange={setIsSettling}
+      />
+    </div>
+  );
+}
+
 export function PersonalBalanceCard({
+  groupId,
   youId,
   yourBalance,
   settlementSuggestions,
   membersById,
   currency,
 }: {
+  groupId: string;
   youId: string;
   yourBalance: MemberBalance | undefined;
   settlementSuggestions: SettlementSuggestion[];
@@ -38,43 +115,16 @@ export function PersonalBalanceCard({
           <SettledCelebration />
         ) : (
           <>
-            {relevant.map((s) => {
-              const youAreOwed = s.to === youId;
-              const otherId = youAreOwed ? s.from : s.to;
-              const otherName =
-                membersById.get(otherId)?.name ?? "Unknown member";
-              const Icon = youAreOwed ? ArrowUpRightIcon : ArrowDownRightIcon;
-              return (
-                <div
-                  key={`${s.from}-${s.to}`}
-                  className={cn(
-                    "flex items-center justify-between rounded-md px-4 py-3",
-                    youAreOwed ? "bg-owed-subtle" : "bg-owe-subtle",
-                  )}
-                >
-                  <span className="flex items-center gap-2 text-xs text-text-secondary md:text-sm">
-                    <Icon
-                      className={cn(
-                        "size-4 md:size-5",
-                        youAreOwed ? "text-owed-strong" : "text-owe-strong",
-                      )}
-                      aria-hidden="true"
-                    />
-                    {youAreOwed
-                      ? `${otherName} owes you`
-                      : `You owe ${otherName}`}
-                  </span>
-                  <span
-                    className={cn(
-                      "font-mono text-lg font-medium tabular-nums md:text-xl",
-                      youAreOwed ? "text-owed-strong" : "text-owe-strong",
-                    )}
-                  >
-                    {formatCurrency(s.amount, currency)}
-                  </span>
-                </div>
-              );
-            })}
+            {relevant.map((s) => (
+              <PersonalBalanceRow
+                key={`${s.from}-${s.to}`}
+                groupId={groupId}
+                suggestion={s}
+                youId={youId}
+                membersById={membersById}
+                currency={currency}
+              />
+            ))}
             <Separator />
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-tertiary md:text-sm">
