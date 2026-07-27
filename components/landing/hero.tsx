@@ -39,6 +39,15 @@ export function Hero() {
             <Link href="/sign-up">Sign Up</Link>
           </Button>
         </div>
+        <p className="mt-4 text-xs text-text-tertiary">
+          Already have an account?{" "}
+          <Link
+            href="/sign-in"
+            className="text-accent underline underline-offset-4"
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
       <div className="flex justify-center lg:justify-end">
         <BalanceCardMockup />
