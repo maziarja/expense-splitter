@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +27,11 @@ import {
 import { guestDataAccess } from "@/lib/data/guest-store";
 import { dateInputToIso, todayDateValue } from "@/lib/forms/date-input";
 import type { CurrencyCode } from "@/lib/splits/constants";
-import { sanitizeDecimalInput } from "@/lib/splits/currency";
+import { formatCurrency, sanitizeDecimalInput } from "@/lib/splits/currency";
+
+function capitalizeFirst(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 export function RecordSettlementDialog({
   groupId,
@@ -86,6 +91,11 @@ export function RecordSettlementDialog({
         return;
       }
       await guestDataAccess.createSettlement(groupId, parsed.data);
+      toast.success("Settlement recorded", {
+        description: capitalizeFirst(
+          `${fromName} paid ${toName} ${formatCurrency(parsedAmount, currency)}`,
+        ),
+      });
       onOpenChange(false);
     } catch (err) {
       if (err instanceof DataAccessError && err.code === "NO_DEBT_EXISTS") {
@@ -106,7 +116,7 @@ export function RecordSettlementDialog({
         <DialogHeader>
           <DialogTitle>Record settlement</DialogTitle>
           <DialogDescription>
-            {fromName} pays {toName}
+            {capitalizeFirst(`${fromName} pays ${toName}`)}
           </DialogDescription>
         </DialogHeader>
         <form

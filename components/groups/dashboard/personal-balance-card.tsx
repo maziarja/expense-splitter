@@ -73,8 +73,8 @@ function PersonalBalanceRow({
         groupId={groupId}
         from={suggestion.from}
         to={suggestion.to}
-        fromName={youAreOwed ? otherName : "You"}
-        toName={youAreOwed ? "You" : otherName}
+        fromName={youAreOwed ? otherName : "you"}
+        toName={youAreOwed ? "you" : otherName}
         amount={suggestion.amount}
         currency={currency}
         open={isSettling}
