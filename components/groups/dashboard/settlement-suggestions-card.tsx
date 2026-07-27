@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRightIcon, CheckIcon } from "lucide-react";
+import { ArrowRightIcon, HandshakeIcon } from "lucide-react";
 
 import { RecordSettlementDialog } from "@/components/groups/settlement/record-settlement-dialog";
 import { Button } from "@/components/ui/button";
@@ -83,15 +83,18 @@ export function SettlementSuggestionsCard({
       </CardHeader>
       <CardContent>
         {settlementSuggestions.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-4 text-center">
-            <div className="flex size-10 items-center justify-center rounded-full bg-success/15">
-              <CheckIcon className="size-5 text-success" aria-hidden="true" />
+          <div className="flex flex-col items-center gap-2 py-4 text-center motion-safe:animate-in motion-safe:duration-500 motion-safe:zoom-in-95 motion-safe:fade-in">
+            <div className="flex size-12 items-center justify-center rounded-full bg-success/15">
+              <HandshakeIcon
+                className="size-6 text-success"
+                aria-hidden="true"
+              />
             </div>
-            <p className="text-sm font-semibold text-text-primary">
-              All settled up
+            <p className="text-base font-bold text-text-primary">
+              Nothing left to settle
             </p>
-            <p className="text-xs text-text-tertiary">
-              No settlements needed right now.
+            <p className="text-xs text-text-secondary">
+              Every debt in this group is settled.
             </p>
           </div>
         ) : (
