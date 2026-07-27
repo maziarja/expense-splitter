@@ -1,6 +1,6 @@
 "use client";
 
-import { ExpenseSplitFields } from "@/components/groups/expense-split-fields";
+import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
 import { Button } from "@/components/ui/button";
 import {
   Field,

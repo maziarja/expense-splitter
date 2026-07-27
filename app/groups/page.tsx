@@ -3,7 +3,7 @@
 import { PlusIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import { GroupDashboardSkeleton } from "@/components/groups/group-dashboard-skeleton";
+import { GroupDashboardSkeleton } from "@/components/groups/dashboard/group-dashboard-skeleton";
 import { Button } from "@/components/ui/button";
 import { useCreateGroupDialogStore } from "@/lib/data/create-group-dialog-store";
 import { useGuestGroups, useGuestReady } from "@/lib/data/guest-hooks";

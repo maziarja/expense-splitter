@@ -4,7 +4,7 @@ import { HomeIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
+import { CreateGroupDialog } from "@/components/groups/group/create-group-dialog";
 import { GroupSidebar } from "@/components/groups/group-sidebar";
 import { Button } from "@/components/ui/button";
 import {

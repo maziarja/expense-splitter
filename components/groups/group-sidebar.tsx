@@ -4,8 +4,8 @@ import { PlusIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { GroupBalanceBadge } from "@/components/groups/group-balance-badge";
-import { GuestSignupPrompt } from "@/components/groups/guest-signup-prompt";
+import { GroupBalanceBadge } from "@/components/groups/dashboard/group-balance-badge";
+import { GuestSignupPrompt } from "@/components/groups/dashboard/guest-signup-prompt";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,

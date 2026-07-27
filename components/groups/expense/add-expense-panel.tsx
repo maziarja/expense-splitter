@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
 
-import { AddExpenseForm } from "@/components/groups/add-expense-form";
+import { AddExpenseForm } from "@/components/groups/expense/add-expense-form";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,

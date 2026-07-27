@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { GroupBalanceBadge } from "@/components/groups/group-balance-badge";
+import { GroupBalanceBadge } from "@/components/groups/dashboard/group-balance-badge";
 import type { Member } from "@/lib/data/types";
 import type { MemberBalance } from "@/lib/splits/balance";
 import type { CurrencyCode } from "@/lib/splits/constants";

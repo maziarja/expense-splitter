@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
 
-import { DeleteGroupDialog } from "@/components/groups/delete-group-dialog";
-import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
+import { DeleteGroupDialog } from "@/components/groups/group/delete-group-dialog";
+import { EditGroupDialog } from "@/components/groups/group/edit-group-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

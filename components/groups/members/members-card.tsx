@@ -1,5 +1,5 @@
-import { AddMemberDialog } from "@/components/groups/add-member-dialog";
-import { RemoveMemberButton } from "@/components/groups/remove-member-button";
+import { AddMemberDialog } from "@/components/groups/members/add-member-dialog";
+import { RemoveMemberButton } from "@/components/groups/members/remove-member-button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Card,

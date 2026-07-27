@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 
-import { AddExpensePanel } from "@/components/groups/add-expense-panel";
-import { ExpenseListItem } from "@/components/groups/expense-list-item";
+import { AddExpensePanel } from "@/components/groups/expense/add-expense-panel";
+import { ExpenseListItem } from "@/components/groups/expense/expense-list-item";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -67,6 +67,7 @@ export function RecentExpensesCard({
                 key={expense.id}
                 expense={expense}
                 payer={membersById.get(expense.paidBy)}
+                membersById={membersById}
                 groupId={groupId}
                 activeMembers={activeMembers}
                 groupCurrency={groupCurrency}
