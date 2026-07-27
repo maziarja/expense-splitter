@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,8 +31,8 @@ const signUpSchema = z
 type SignUpValues = z.infer<typeof signUpSchema>;
 
 export function SignUpForm() {
+  const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -45,7 +45,6 @@ export function SignUpForm() {
       name: values.name,
       email: values.email,
       password: values.password,
-      callbackURL: "/sign-in",
     });
     if (error) {
       setSubmitError(
@@ -53,24 +52,7 @@ export function SignUpForm() {
       );
       return;
     }
-    setSubmittedEmail(values.email);
-  }
-
-  if (submittedEmail) {
-    return (
-      <div className="space-y-4 text-sm text-text-secondary">
-        <p>
-          We sent a verification link to{" "}
-          <span className="font-medium text-text-primary">
-            {submittedEmail}
-          </span>
-          . Click it, then sign in below.
-        </p>
-        <Button asChild className="w-full">
-          <Link href="/sign-in">Go to sign in</Link>
-        </Button>
-      </div>
-    );
+    router.push("/account");
   }
 
   return (

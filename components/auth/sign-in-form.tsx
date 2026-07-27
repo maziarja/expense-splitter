@@ -26,10 +26,6 @@ type SignInValues = z.infer<typeof signInSchema>;
 export function SignInForm() {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
-  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">(
-    "idle",
-  );
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -38,31 +34,15 @@ export function SignInForm() {
 
   async function onSubmit(values: SignInValues) {
     setSubmitError(null);
-    setUnverifiedEmail(null);
-    setResendState("idle");
     const { error } = await authClient.signIn.email({
       email: values.email,
       password: values.password,
     });
     if (error) {
-      if (error.code === "EMAIL_NOT_VERIFIED") {
-        setUnverifiedEmail(values.email);
-      } else {
-        setSubmitError("Incorrect email or password.");
-      }
+      setSubmitError("Incorrect email or password.");
       return;
     }
     router.push("/account");
-  }
-
-  async function handleResend() {
-    if (!unverifiedEmail) return;
-    setResendState("sending");
-    await authClient.sendVerificationEmail({
-      email: unverifiedEmail,
-      callbackURL: "/sign-in",
-    });
-    setResendState("sent");
   }
 
   return (
@@ -109,30 +89,6 @@ export function SignInForm() {
         <p role="alert" className="mt-3 text-xs text-destructive">
           {submitError}
         </p>
-      )}
-      {unverifiedEmail && (
-        <div
-          role="alert"
-          className="mt-3 space-y-2 rounded-lg bg-warning/10 p-3 text-xs text-text-secondary"
-        >
-          <p>
-            Verify your email before signing in — check your inbox for the link
-            we sent you.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleResend}
-            disabled={resendState === "sending"}
-          >
-            {resendState === "sent"
-              ? "Verification email sent"
-              : resendState === "sending"
-                ? "Sending…"
-                : "Resend verification email"}
-          </Button>
-        </div>
       )}
       <Button
         type="submit"

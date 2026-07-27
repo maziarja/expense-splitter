@@ -39,11 +39,11 @@ export function Hero() {
             <Link href="/sign-up">Sign Up</Link>
           </Button>
         </div>
-        <p className="mt-4 text-xs text-text-tertiary">
+        <p className="mt-4 text-sm text-text-secondary">
           Already have an account?{" "}
           <Link
             href="/sign-in"
-            className="text-accent underline underline-offset-4"
+            className="font-medium text-accent underline underline-offset-4"
           >
             Sign in
           </Link>
