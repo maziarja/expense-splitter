@@ -11,6 +11,7 @@ import { SettlementSuggestionsCard } from "@/components/groups/dashboard/settlem
 import { RecentExpensesCard } from "@/components/groups/expense/recent-expenses-card";
 import { GroupActionsMenu } from "@/components/groups/group/group-actions-menu";
 import { MembersCard } from "@/components/groups/members/members-card";
+import { SettlementHistoryCard } from "@/components/groups/settlement/settlement-history-card";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { getCurrentMember } from "@/lib/data/current-member";
 import { useGuestGroup, useGuestReady } from "@/lib/data/guest-hooks";
@@ -120,6 +121,11 @@ export default function GroupDashboardPage() {
           activeMembers={activeMembers}
           groupCurrency={group.currency}
           defaultPayerId={you?.id}
+        />
+
+        <SettlementHistoryCard
+          settlements={group.settlements}
+          membersById={membersById}
         />
 
         <SettlementSuggestionsCard

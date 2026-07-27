@@ -66,9 +66,10 @@ export function RecordSettlementDialog({
 
   const parsedAmount = parseFloat(amountInput);
   const hasValidAmount = Number.isFinite(parsedAmount) && parsedAmount > 0;
+  const hasValidDate = dateValue !== "" && dateValue <= todayDateValue();
 
   async function onSubmit() {
-    if (!hasValidAmount) return;
+    if (!hasValidAmount || !hasValidDate) return;
     setPending(true);
     setSubmitError(null);
     try {
@@ -136,14 +137,21 @@ export function RecordSettlementDialog({
                 <FieldError>Enter an amount greater than zero.</FieldError>
               )}
             </Field>
-            <Field>
+            <Field data-invalid={!hasValidDate}>
               <FieldLabel htmlFor="settlement-date">Date</FieldLabel>
               <Input
                 id="settlement-date"
                 type="date"
                 value={dateValue}
+                max={todayDateValue()}
                 onChange={(e) => setDateValue(e.target.value)}
+                aria-invalid={!hasValidDate}
               />
+              {!hasValidDate && (
+                <FieldError>
+                  Settlement date can&apos;t be in the future.
+                </FieldError>
+              )}
             </Field>
           </FieldGroup>
           {submitError && (
@@ -156,7 +164,7 @@ export function RecordSettlementDialog({
           <Button
             type="submit"
             form="record-settlement-form"
-            disabled={pending || !hasValidAmount}
+            disabled={pending || !hasValidAmount || !hasValidDate}
           >
             {pending ? "Recording…" : "Record settlement"}
           </Button>
