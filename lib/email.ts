@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const EMAIL_FROM = "Expense Splitter <no-reply@mazdev.dev>";
+const EMAIL_FROM = "Expense Splitter <expense-splitter@mazdev.dev>";
 
 // Inline styles only — email clients don't run Tailwind. Colors are the
 // light-theme brand tokens from guidance/brand-kit.md, since email clients
