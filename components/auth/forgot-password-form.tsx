@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,33 +15,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 
-const signInSchema = z.object({
+const forgotPasswordSchema = z.object({
   email: z.email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
 });
 
-type SignInValues = z.infer<typeof signInSchema>;
+type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
-export function SignInForm() {
-  const router = useRouter();
+export function ForgotPasswordForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
-  const form = useForm<SignInValues>({
-    resolver: zodResolver(signInSchema),
-    defaultValues: { email: "", password: "" },
+  const form = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
   });
 
-  async function onSubmit(values: SignInValues) {
+  async function onSubmit(values: ForgotPasswordValues) {
     setSubmitError(null);
-    const { error } = await authClient.signIn.email({
+    const { error } = await authClient.requestPasswordReset({
       email: values.email,
-      password: values.password,
+      redirectTo: "/reset-password",
     });
     if (error) {
-      setSubmitError("Incorrect email or password.");
+      setSubmitError(
+        error.message ?? "Couldn't send the reset link. Please try again.",
+      );
       return;
     }
-    router.push("/account");
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <p className="text-sm text-text-secondary">
+        If an account exists for that email, we sent a link to reset your
+        password.
+      </p>
+    );
   }
 
   return (
@@ -68,31 +76,6 @@ export function SignInForm() {
             </Field>
           )}
         />
-        <Controller
-          name="password"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex items-center justify-between">
-                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-accent underline underline-offset-4"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                {...field}
-                id={field.name}
-                type="password"
-                aria-invalid={fieldState.invalid}
-                autoComplete="current-password"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
       </FieldGroup>
       {submitError && (
         <p role="alert" className="mt-3 text-xs text-destructive">
@@ -104,7 +87,7 @@ export function SignInForm() {
         className="mt-6 w-full"
         disabled={form.formState.isSubmitting}
       >
-        {form.formState.isSubmitting ? "Signing in…" : "Sign in"}
+        {form.formState.isSubmitting ? "Sending…" : "Send reset link"}
       </Button>
     </form>
   );

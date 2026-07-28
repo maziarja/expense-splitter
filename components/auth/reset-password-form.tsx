@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -17,77 +16,75 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 
-const signInSchema = z.object({
-  email: z.email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
-type SignInValues = z.infer<typeof signInSchema>;
+type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-export function SignInForm() {
+export function ResetPasswordForm({ token }: { token: string }) {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const form = useForm<SignInValues>({
-    resolver: zodResolver(signInSchema),
-    defaultValues: { email: "", password: "" },
+  const form = useForm<ResetPasswordValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
   });
 
-  async function onSubmit(values: SignInValues) {
+  async function onSubmit(values: ResetPasswordValues) {
     setSubmitError(null);
-    const { error } = await authClient.signIn.email({
-      email: values.email,
-      password: values.password,
+    const { error } = await authClient.resetPassword({
+      newPassword: values.password,
+      token,
     });
     if (error) {
-      setSubmitError("Incorrect email or password.");
+      setSubmitError(
+        error.message ?? "Couldn't reset your password. Please try again.",
+      );
       return;
     }
-    router.push("/account");
+    router.push("/sign-in");
   }
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
         <Controller
-          name="email"
+          name="password"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+              <FieldLabel htmlFor={field.name}>New password</FieldLabel>
               <Input
                 {...field}
                 id={field.name}
-                type="email"
-                placeholder="you@example.com"
+                type="password"
                 aria-invalid={fieldState.invalid}
                 autoFocus
-                autoComplete="email"
+                autoComplete="new-password"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
         <Controller
-          name="password"
+          name="confirmPassword"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <div className="flex items-center justify-between">
-                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-accent underline underline-offset-4"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <FieldLabel htmlFor={field.name}>Confirm new password</FieldLabel>
               <Input
                 {...field}
                 id={field.name}
                 type="password"
                 aria-invalid={fieldState.invalid}
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -104,7 +101,7 @@ export function SignInForm() {
         className="mt-6 w-full"
         disabled={form.formState.isSubmitting}
       >
-        {form.formState.isSubmitting ? "Signing in…" : "Sign in"}
+        {form.formState.isSubmitting ? "Resetting…" : "Reset password"}
       </Button>
     </form>
   );
