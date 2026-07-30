@@ -23,3 +23,13 @@ export async function runAction<T>(
     throw err;
   }
 }
+
+// Client-side mirror of runAction: converts an ActionResult back into a
+// thrown DataAccessError, so a DataAccess implementation backed by Server
+// Actions still matches the throwing contract guestDataAccess already has.
+export function unwrapActionResult<T>(result: ActionResult<T>): T {
+  if (!result.ok) {
+    throw new DataAccessError(result.message, result.code);
+  }
+  return result.data;
+}
