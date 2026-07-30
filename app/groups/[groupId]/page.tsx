@@ -1,40 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import GroupNotFound from "@/app/groups/[groupId]/not-found";
 import { GroupDashboardSkeleton } from "@/components/groups/dashboard/group-dashboard-skeleton";
-import { GroupSummaryCard } from "@/components/groups/dashboard/group-summary-card";
-import { PersonalBalanceCard } from "@/components/groups/dashboard/personal-balance-card";
-import { SettlementSuggestionsCard } from "@/components/groups/dashboard/settlement-suggestions-card";
-import { RecentExpensesCard } from "@/components/groups/expense/recent-expenses-card";
-import { GroupActionsMenu } from "@/components/groups/group/group-actions-menu";
-import { MembersCard } from "@/components/groups/members/members-card";
-import { SettlementHistoryCard } from "@/components/groups/settlement/settlement-history-card";
-import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
+import { GroupDetailView } from "@/components/groups/group-detail-view";
 import { getCurrentMember } from "@/lib/data/current-member";
 import { useGuestGroup, useGuestReady } from "@/lib/data/guest-hooks";
-import { calculateTotalSpent } from "@/lib/splits/balance";
 
 export default function GroupDashboardPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const ready = useGuestReady();
   const group = useGuestGroup(groupId);
-
-  const activeMembers = useMemo(
-    () => group?.members.filter((m) => !m.deletedAt) ?? [],
-    [group],
-  );
-
-  const membersById = useMemo(
-    () => new Map(group?.members.map((m) => [m.id, m] as const) ?? []),
-    [group],
-  );
-  const totalSpent = useMemo(
-    () => (group ? calculateTotalSpent(group.expenses, group.currency) : 0),
-    [group],
-  );
 
   if (!ready) {
     return <GroupDashboardSkeleton />;
@@ -45,96 +22,13 @@ export default function GroupDashboardPage() {
   }
 
   const you = getCurrentMember(group.members);
-  const yourBalance = group.memberBalances.find((b) => b.memberId === you?.id);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 bg-bg-primary px-4 py-8 md:px-8">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-1">
-              <h1 className="text-lg font-bold text-text-primary sm:text-xl md:text-2xl">
-                {group.name}
-              </h1>
-              <div className="pt-1">
-                <GroupActionsMenu
-                  group={{
-                    id: group.id,
-                    name: group.name,
-                    description: group.description,
-                    currency: group.currency,
-                  }}
-                  hasExpenses={group.expenses.length > 0}
-                />
-              </div>
-            </div>
-            <AvatarGroup>
-              {activeMembers.map((member) => (
-                <Avatar key={member.id}>
-                  <AvatarFallback
-                    className="text-white"
-                    style={{ backgroundColor: member.avatarColor }}
-                  >
-                    {member.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </AvatarGroup>
-          </div>
-          <p className="text-xs text-text-secondary md:text-sm">
-            {activeMembers.length} member
-            {activeMembers.length === 1 ? "" : "s"} · {group.expenses.length}{" "}
-            expense{group.expenses.length === 1 ? "" : "s"}
-          </p>
-        </header>
-
-        <MembersCard
-          groupId={groupId}
-          members={activeMembers}
-          youId={you?.id}
-        />
-
-        {you && (
-          <PersonalBalanceCard
-            groupId={groupId}
-            youId={you.id}
-            yourBalance={yourBalance}
-            settlementSuggestions={group.settlementSuggestions}
-            membersById={membersById}
-            currency={group.currency}
-          />
-        )}
-
-        <GroupSummaryCard
-          members={activeMembers}
-          memberBalances={group.memberBalances}
-          totalSpent={totalSpent}
-          expenseCount={group.expenses.length}
-          currency={group.currency}
-          youId={you?.id}
-        />
-
-        <RecentExpensesCard
-          groupId={groupId}
-          expenses={group.expenses}
-          membersById={membersById}
-          activeMembers={activeMembers}
-          groupCurrency={group.currency}
-          defaultPayerId={you?.id}
-        />
-
-        <SettlementHistoryCard
-          settlements={group.settlements}
-          membersById={membersById}
-        />
-
-        <SettlementSuggestionsCard
-          groupId={groupId}
-          settlementSuggestions={group.settlementSuggestions}
-          membersById={membersById}
-          currency={group.currency}
-        />
-      </div>
-    </main>
+    <GroupDetailView
+      group={group}
+      groupId={groupId}
+      basePath="/groups"
+      you={you}
+    />
   );
 }

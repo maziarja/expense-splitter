@@ -12,6 +12,7 @@ import type {
   UpdateExpenseInput,
 } from "@/lib/data/types";
 import { runAction, type ActionResult } from "./action-result";
+import { revalidateDashboard } from "./revalidate-dashboard";
 
 export async function createExpenseAction(
   groupId: string,
@@ -19,7 +20,11 @@ export async function createExpenseAction(
 ): Promise<ActionResult<Expense>> {
   await requireAuth();
   const data = createExpenseInputSchema.parse(input);
-  return runAction(() => prismaDataAccess.createExpense(groupId, data));
+  const result = await runAction(() =>
+    prismaDataAccess.createExpense(groupId, data),
+  );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
 }
 
 export async function updateExpenseAction(
@@ -29,9 +34,11 @@ export async function updateExpenseAction(
 ): Promise<ActionResult<Expense>> {
   await requireAuth();
   const data = updateExpenseInputSchema.parse(input);
-  return runAction(() =>
+  const result = await runAction(() =>
     prismaDataAccess.updateExpense(groupId, expenseId, data),
   );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
 }
 
 export async function deleteExpenseAction(
@@ -39,5 +46,9 @@ export async function deleteExpenseAction(
   expenseId: string,
 ): Promise<ActionResult<void>> {
   await requireAuth();
-  return runAction(() => prismaDataAccess.deleteExpense(groupId, expenseId));
+  const result = await runAction(() =>
+    prismaDataAccess.deleteExpense(groupId, expenseId),
+  );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
 }

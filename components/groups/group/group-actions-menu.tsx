@@ -17,9 +17,11 @@ import type { Group } from "@/lib/data/types";
 export function GroupActionsMenu({
   group,
   hasExpenses,
+  basePath,
 }: {
   group: Pick<Group, "id" | "name" | "description" | "currency">;
   hasExpenses: boolean;
+  basePath: string;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -56,6 +58,7 @@ export function GroupActionsMenu({
       <DeleteGroupDialog
         groupId={group.id}
         groupName={group.name}
+        basePath={basePath}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
       />

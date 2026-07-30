@@ -19,11 +19,13 @@ import { useDataAccessContext } from "@/lib/data/data-access-context";
 export function DeleteGroupDialog({
   groupId,
   groupName,
+  basePath,
   open,
   onOpenChange,
 }: {
   groupId: string;
   groupName: string;
+  basePath: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -38,7 +40,7 @@ export function DeleteGroupDialog({
     try {
       await dataAccess.deleteGroup(groupId);
       onOpenChange(false);
-      router.push("/groups");
+      router.push(basePath);
     } catch (err) {
       if (err instanceof DataAccessError && err.code === "GROUP_NOT_SETTLED") {
         setError(

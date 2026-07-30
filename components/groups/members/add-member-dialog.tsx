@@ -24,7 +24,10 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { AVATAR_COLOR_PALETTE, pickAvatarColor } from "@/lib/data/avatar-color";
-import { useDataAccessContext } from "@/lib/data/data-access-context";
+import {
+  useDataAccessContext,
+  useDataAccessRefresh,
+} from "@/lib/data/data-access-context";
 import type { Member } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +52,7 @@ export function AddMemberDialog({
   activeMembers: Member[];
 }) {
   const dataAccess = useDataAccessContext();
+  const refresh = useDataAccessRefresh();
   const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -66,6 +70,7 @@ export function AddMemberDialog({
         avatarColor: values.avatarColor,
       });
       setOpen(false);
+      refresh();
     } catch {
       setSubmitError("Couldn't add the member. Please try again.");
     }

@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DataAccessError } from "@/lib/data/data-access";
-import { useDataAccessContext } from "@/lib/data/data-access-context";
+import {
+  useDataAccessContext,
+  useDataAccessRefresh,
+} from "@/lib/data/data-access-context";
 import type { Member } from "@/lib/data/types";
 
 export function RemoveMemberButton({
@@ -27,6 +30,7 @@ export function RemoveMemberButton({
   member: Member;
 }) {
   const dataAccess = useDataAccessContext();
+  const refresh = useDataAccessRefresh();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,6 +41,7 @@ export function RemoveMemberButton({
     try {
       await dataAccess.removeMember(groupId, member.id);
       setOpen(false);
+      refresh();
     } catch (err) {
       if (err instanceof DataAccessError && err.code === "MEMBER_HAS_BALANCE") {
         setError(

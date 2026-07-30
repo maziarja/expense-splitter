@@ -12,7 +12,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDataAccessContext } from "@/lib/data/data-access-context";
+import {
+  useDataAccessContext,
+  useDataAccessRefresh,
+} from "@/lib/data/data-access-context";
 
 export function DeleteExpenseDialog({
   groupId,
@@ -28,6 +31,7 @@ export function DeleteExpenseDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const dataAccess = useDataAccessContext();
+  const refresh = useDataAccessRefresh();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -37,6 +41,7 @@ export function DeleteExpenseDialog({
     try {
       await dataAccess.deleteExpense(groupId, expenseId);
       onOpenChange(false);
+      refresh();
     } catch {
       setError("Couldn't delete this expense. Please try again.");
     } finally {

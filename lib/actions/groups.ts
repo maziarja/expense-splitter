@@ -15,13 +15,16 @@ import type {
   UpdateGroupInput,
 } from "@/lib/data/types";
 import { runAction, type ActionResult } from "./action-result";
+import { revalidateDashboard } from "./revalidate-dashboard";
 
 export async function createGroupAction(
   input: CreateGroupInput,
 ): Promise<ActionResult<Group>> {
   await requireAuth();
   const data = createGroupInputSchema.parse(input);
-  return runAction(() => prismaDataAccess.createGroup(data));
+  const result = await runAction(() => prismaDataAccess.createGroup(data));
+  if (result.ok) revalidateDashboard();
+  return result;
 }
 
 export async function updateGroupAction(
@@ -30,14 +33,20 @@ export async function updateGroupAction(
 ): Promise<ActionResult<Group>> {
   await requireAuth();
   const data = updateGroupInputSchema.parse(input);
-  return runAction(() => prismaDataAccess.updateGroup(groupId, data));
+  const result = await runAction(() =>
+    prismaDataAccess.updateGroup(groupId, data),
+  );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
 }
 
 export async function deleteGroupAction(
   groupId: string,
 ): Promise<ActionResult<void>> {
   await requireAuth();
-  return runAction(() => prismaDataAccess.deleteGroup(groupId));
+  const result = await runAction(() => prismaDataAccess.deleteGroup(groupId));
+  if (result.ok) revalidateDashboard();
+  return result;
 }
 
 export async function addMemberAction(
@@ -46,7 +55,11 @@ export async function addMemberAction(
 ): Promise<ActionResult<Member>> {
   await requireAuth();
   const data = addMemberInputSchema.parse(input);
-  return runAction(() => prismaDataAccess.addMember(groupId, data));
+  const result = await runAction(() =>
+    prismaDataAccess.addMember(groupId, data),
+  );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
 }
 
 export async function removeMemberAction(
@@ -54,5 +67,9 @@ export async function removeMemberAction(
   memberId: string,
 ): Promise<ActionResult<void>> {
   await requireAuth();
-  return runAction(() => prismaDataAccess.removeMember(groupId, memberId));
+  const result = await runAction(() =>
+    prismaDataAccess.removeMember(groupId, memberId),
+  );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
 }

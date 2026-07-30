@@ -24,7 +24,10 @@ import {
   createSettlementInputSchema,
   DataAccessError,
 } from "@/lib/data/data-access";
-import { useDataAccessContext } from "@/lib/data/data-access-context";
+import {
+  useDataAccessContext,
+  useDataAccessRefresh,
+} from "@/lib/data/data-access-context";
 import { dateInputToIso, todayDateValue } from "@/lib/forms/date-input";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency, sanitizeDecimalInput } from "@/lib/splits/currency";
@@ -55,6 +58,7 @@ export function RecordSettlementDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const dataAccess = useDataAccessContext();
+  const refresh = useDataAccessRefresh();
   const [amountInput, setAmountInput] = useState(() => String(amount));
   const [dateValue, setDateValue] = useState(todayDateValue);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -98,6 +102,7 @@ export function RecordSettlementDialog({
         ),
       });
       onOpenChange(false);
+      refresh();
     } catch (err) {
       if (err instanceof DataAccessError && err.code === "NO_DEBT_EXISTS") {
         setSubmitError(

@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
+import { cache } from "react";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
-import { auth } from "../auth";
+import { getCachedSession } from "../auth";
 import { prisma } from "../prisma";
 import { calculateBalances } from "../splits/balance";
 import type { CurrencyCode } from "../splits/constants";
@@ -40,7 +40,7 @@ async function withNotFound<T>(
 // at the page/action boundary before reaching here, so this is a defensive
 // fallback, not the primary auth check.
 async function getSessionUser() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   if (!session) {
     throw new DataAccessError("Not authenticated", "UNAUTHENTICATED");
   }
@@ -254,7 +254,7 @@ function splitsCreateInput(splits: Split[]) {
 }
 
 export const prismaDataAccess: DataAccess = {
-  async listGroups() {
+  listGroups: cache(async () => {
     const { id: userId } = await getSessionUser();
     const groups = await prisma.group.findMany({
       where: { members: { some: { userId, deletedAt: null } } },
@@ -292,9 +292,9 @@ export const prismaDataAccess: DataAccess = {
         yourBalance,
       };
     });
-  },
+  }),
 
-  async getGroup(groupId) {
+  getGroup: cache(async (groupId: string) => {
     const { id: userId } = await getSessionUser();
     const group = await prisma.group.findFirst({
       where: { id: groupId, members: { some: { userId, deletedAt: null } } },
@@ -336,7 +336,7 @@ export const prismaDataAccess: DataAccess = {
       memberBalances,
       settlementSuggestions,
     };
-  },
+  }),
 
   async createGroup(input) {
     const user = await getSessionUser();

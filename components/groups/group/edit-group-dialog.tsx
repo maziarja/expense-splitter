@@ -30,7 +30,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateGroupInputSchema } from "@/lib/data/data-access";
-import { useDataAccessContext } from "@/lib/data/data-access-context";
+import {
+  useDataAccessContext,
+  useDataAccessRefresh,
+} from "@/lib/data/data-access-context";
 import type { Group, UpdateGroupInput } from "@/lib/data/types";
 import { getCurrencyOptions } from "@/lib/splits/currency";
 
@@ -48,6 +51,7 @@ export function EditGroupDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const dataAccess = useDataAccessContext();
+  const refresh = useDataAccessRefresh();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<UpdateGroupInput>({
@@ -64,6 +68,7 @@ export function EditGroupDialog({
     try {
       await dataAccess.updateGroup(group.id, values);
       onOpenChange(false);
+      refresh();
     } catch {
       setSubmitError("Couldn't save changes. Please try again.");
     }
@@ -105,7 +110,6 @@ export function EditGroupDialog({
                     id={field.name}
                     placeholder="Trip to Japan"
                     aria-invalid={fieldState.invalid}
-                    autoFocus
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />

@@ -38,7 +38,7 @@ import { getCurrencyOptions } from "@/lib/splits/currency";
 
 const CURRENCY_OPTIONS = getCurrencyOptions();
 
-export function CreateGroupDialog() {
+export function CreateGroupDialog({ basePath }: { basePath: string }) {
   const router = useRouter();
   const dataAccess = useDataAccessContext();
   const open = useCreateGroupDialogStore((state) => state.open);
@@ -55,7 +55,7 @@ export function CreateGroupDialog() {
     try {
       const group = await dataAccess.createGroup(values);
       setOpen(false);
-      router.push(`/groups/${group.id}`);
+      router.push(`${basePath}/${group.id}`);
     } catch {
       setSubmitError("Couldn't create the group. Please try again.");
     }
