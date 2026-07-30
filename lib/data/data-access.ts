@@ -59,7 +59,8 @@ export type DataAccessErrorCode =
   | "EXPENSE_NOT_FOUND"
   | "MEMBER_HAS_BALANCE"
   | "GROUP_NOT_SETTLED"
-  | "NO_DEBT_EXISTS";
+  | "NO_DEBT_EXISTS"
+  | "UNAUTHENTICATED";
 
 export class DataAccessError extends Error {
   constructor(

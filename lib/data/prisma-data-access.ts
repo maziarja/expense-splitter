@@ -1,10 +1,12 @@
+import { headers } from "next/headers";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
+import { auth } from "../auth";
 import { prisma } from "../prisma";
 import { calculateBalances } from "../splits/balance";
 import type { CurrencyCode } from "../splits/constants";
 import { isNegligibleAmount } from "../splits/currency";
 import type { SplitType } from "../splits/schema";
-import { getCurrentMember } from "./current-member";
+import { pickAvatarColor } from "./avatar-color";
 import {
   DataAccessError,
   type DataAccess,
@@ -32,15 +34,32 @@ async function withNotFound<T>(
   }
 }
 
-async function requireGroupExists(
+// Doesn't reuse requireAuth() from lib/auth.ts: that helper redirects on a
+// missing session, a navigation concern that doesn't belong in the data
+// layer. Real callers (Server Components/Actions) already call requireAuth()
+// at the page/action boundary before reaching here, so this is a defensive
+// fallback, not the primary auth check.
+async function getSessionUser() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new DataAccessError("Not authenticated", "UNAUTHENTICATED");
+  }
+  return session.user;
+}
+
+// Reuses GROUP_NOT_FOUND (same message text a genuinely nonexistent group
+// gets) rather than a distinct "forbidden" code, so a non-member can't
+// distinguish "doesn't exist" from "not yours" via the error.
+async function requireGroupMembership(
   client: PrismaLike,
   groupId: string,
+  userId: string,
 ): Promise<void> {
-  const exists = await client.group.findUnique({
-    where: { id: groupId },
+  const membership = await client.member.findFirst({
+    where: { groupId, userId, deletedAt: null },
     select: { id: true },
   });
-  if (!exists) {
+  if (!membership) {
     throw new DataAccessError(
       `Group "${groupId}" not found`,
       "GROUP_NOT_FOUND",
@@ -236,7 +255,9 @@ function splitsCreateInput(splits: Split[]) {
 
 export const prismaDataAccess: DataAccess = {
   async listGroups() {
+    const { id: userId } = await getSessionUser();
     const groups = await prisma.group.findMany({
+      where: { members: { some: { userId, deletedAt: null } } },
       include: {
         members: true,
         balances: true,
@@ -257,9 +278,7 @@ export const prismaDataAccess: DataAccess = {
         };
       });
 
-      // TODO(Phase 6): once auth is wired up, resolve "you" from the
-      // session's userId instead of the members[0] placeholder convention.
-      const you = getCurrentMember(group.members.map(toMember));
+      const you = group.members.find((m) => m.userId === userId);
       const yourBalance =
         memberBalances.find((balance) => balance.memberId === you?.id) ?? null;
 
@@ -276,8 +295,9 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async getGroup(groupId) {
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
+    const { id: userId } = await getSessionUser();
+    const group = await prisma.group.findFirst({
+      where: { id: groupId, members: { some: { userId, deletedAt: null } } },
       include: {
         members: true,
         expenses: { include: { splits: true }, orderBy: { date: "desc" } },
@@ -319,17 +339,28 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async createGroup(input) {
+    const user = await getSessionUser();
     const group = await prisma.group.create({
       data: {
         name: input.name,
         description: input.description ?? null,
         currency: input.currency,
+        members: {
+          create: {
+            user: { connect: { id: user.id } },
+            name: user.name,
+            email: user.email,
+            avatarColor: pickAvatarColor([]),
+          },
+        },
       },
     });
     return toGroup(group);
   },
 
   async updateGroup(groupId, input) {
+    const { id: userId } = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, userId);
     const group = await withNotFound(
       () =>
         prisma.group.update({
@@ -347,6 +378,8 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async deleteGroup(groupId) {
+    const { id: userId } = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, userId);
     const { memberBalances } = await withNotFound(
       () => computeGroupBalances(prisma, groupId),
       "GROUP_NOT_FOUND",
@@ -362,6 +395,8 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async addMember(groupId, input) {
+    const { id: userId } = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, userId);
     const member = await withNotFound(
       () =>
         prisma.member.create({
@@ -379,7 +414,9 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async removeMember(groupId, memberId) {
+    const { id: userId } = await getSessionUser();
     await prisma.$transaction(async (tx) => {
+      await requireGroupMembership(tx, groupId, userId);
       const member = await tx.member.findFirst({
         where: { id: memberId, groupId },
       });
@@ -408,7 +445,8 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async listExpenses(groupId) {
-    await requireGroupExists(prisma, groupId);
+    const { id: userId } = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, userId);
     const expenses = await prisma.expense.findMany({
       where: { groupId },
       include: { splits: true },
@@ -418,15 +456,22 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async getExpense(groupId, expenseId) {
+    const { id: userId } = await getSessionUser();
     const expense = await prisma.expense.findFirst({
-      where: { id: expenseId, groupId },
+      where: {
+        id: expenseId,
+        groupId,
+        group: { members: { some: { userId, deletedAt: null } } },
+      },
       include: { splits: true },
     });
     return expense ? toExpense(expense) : null;
   },
 
   async createExpense(groupId, input) {
+    const { id: userId } = await getSessionUser();
     return prisma.$transaction(async (tx) => {
+      await requireGroupMembership(tx, groupId, userId);
       const expense = await withNotFound(
         () =>
           tx.expense.create({
@@ -456,7 +501,9 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async updateExpense(groupId, expenseId, input) {
+    const { id: userId } = await getSessionUser();
     return prisma.$transaction(async (tx) => {
+      await requireGroupMembership(tx, groupId, userId);
       const existing = await tx.expense.findFirst({
         where: { id: expenseId, groupId },
       });
@@ -492,7 +539,9 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async deleteExpense(groupId, expenseId) {
+    const { id: userId } = await getSessionUser();
     await prisma.$transaction(async (tx) => {
+      await requireGroupMembership(tx, groupId, userId);
       const existing = await tx.expense.findFirst({
         where: { id: expenseId, groupId },
       });
@@ -508,7 +557,8 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async listSettlements(groupId) {
-    await requireGroupExists(prisma, groupId);
+    const { id: userId } = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, userId);
     const settlements = await prisma.settlement.findMany({
       where: { groupId },
       orderBy: { date: "desc" },
@@ -517,7 +567,9 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async createSettlement(groupId, input) {
+    const { id: userId } = await getSessionUser();
     return prisma.$transaction(async (tx) => {
+      await requireGroupMembership(tx, groupId, userId);
       const { settlementSuggestions } = await withNotFound(
         () => computeGroupBalances(tx, groupId),
         "GROUP_NOT_FOUND",
