@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 
 import { createExpenseInputSchema } from "@/lib/data/data-access";
-import { guestDataAccess } from "@/lib/data/guest-store";
+import { useDataAccessContext } from "@/lib/data/data-access-context";
 import type { Expense, Member } from "@/lib/data/types";
 import { dateInputToIso, todayDateValue } from "@/lib/forms/date-input";
 import {
@@ -71,6 +71,7 @@ export function useAddExpenseForm({
   expense?: Expense;
   onSuccess: () => void;
 }) {
+  const dataAccess = useDataAccessContext();
   const [amountInput, setAmountInput] = useState(() =>
     expense ? String(expense.amount) : "",
   );
@@ -274,9 +275,9 @@ export function useAddExpenseForm({
     setPending(true);
     try {
       if (expense) {
-        await guestDataAccess.updateExpense(groupId, expense.id, parsed.data);
+        await dataAccess.updateExpense(groupId, expense.id, parsed.data);
       } else {
-        await guestDataAccess.createExpense(groupId, parsed.data);
+        await dataAccess.createExpense(groupId, parsed.data);
       }
       onSuccess();
     } catch {

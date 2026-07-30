@@ -13,6 +13,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DataAccessProvider } from "@/lib/data/data-access-context";
 import { guestDataAccess, useGuestStore } from "@/lib/data/guest-store";
 
 export default function GroupsLayout({
@@ -29,28 +30,30 @@ export default function GroupsLayout({
   }, []);
 
   return (
-    <TooltipProvider>
-      <SidebarProvider>
-        <GroupSidebar />
-        <CreateGroupDialog />
-        <SidebarInset>
-          <header className="flex items-center gap-3 border-b border-border-subtle px-4 py-3">
-            <SidebarTrigger />
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="ml-auto gap-1.5"
-            >
-              <Link href="/">
-                <HomeIcon aria-hidden="true" />
-                Back to home
-              </Link>
-            </Button>
-          </header>
-          {children}
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+    <DataAccessProvider dataAccess={guestDataAccess}>
+      <TooltipProvider>
+        <SidebarProvider>
+          <GroupSidebar />
+          <CreateGroupDialog />
+          <SidebarInset>
+            <header className="flex items-center gap-3 border-b border-border-subtle px-4 py-3">
+              <SidebarTrigger />
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="ml-auto gap-1.5"
+              >
+                <Link href="/">
+                  <HomeIcon aria-hidden="true" />
+                  Back to home
+                </Link>
+              </Button>
+            </header>
+            {children}
+          </SidebarInset>
+        </SidebarProvider>
+      </TooltipProvider>
+    </DataAccessProvider>
   );
 }

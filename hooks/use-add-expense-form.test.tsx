@@ -5,20 +5,18 @@ import { act, renderHook } from "@testing-library/react";
 import { format, parseISO } from "date-fns";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { guestDataAccess } from "@/lib/data/guest-store";
+import type { DataAccess } from "@/lib/data/data-access";
+import { DataAccessProvider } from "@/lib/data/data-access-context";
 import type { Expense, Member } from "@/lib/data/types";
 
 import { useAddExpenseForm } from "./use-add-expense-form";
 
-vi.mock("@/lib/data/guest-store", () => ({
-  guestDataAccess: {
-    createExpense: vi.fn(),
-    updateExpense: vi.fn(),
-  },
-}));
-
-const createExpense = vi.mocked(guestDataAccess.createExpense);
-const updateExpense = vi.mocked(guestDataAccess.updateExpense);
+const createExpense = vi.fn();
+const updateExpense = vi.fn();
+const mockDataAccess = {
+  createExpense,
+  updateExpense,
+} as unknown as DataAccess;
 
 type SubmitHandler = ReturnType<typeof useAddExpenseForm>["handleSubmit"];
 function fakeSubmitEvent() {
@@ -69,15 +67,23 @@ function setup(overrides?: {
   onSuccess?: () => void;
 }) {
   const onSuccess = overrides?.onSuccess ?? vi.fn();
-  const hook = renderHook(() =>
-    useAddExpenseForm({
-      groupId: "group-1",
-      activeMembers,
-      groupCurrency: overrides?.groupCurrency ?? "USD",
-      defaultPayerId: overrides?.defaultPayerId ?? alex.id,
-      expense: overrides?.expense,
-      onSuccess,
-    }),
+  const hook = renderHook(
+    () =>
+      useAddExpenseForm({
+        groupId: "group-1",
+        activeMembers,
+        groupCurrency: overrides?.groupCurrency ?? "USD",
+        defaultPayerId: overrides?.defaultPayerId ?? alex.id,
+        expense: overrides?.expense,
+        onSuccess,
+      }),
+    {
+      wrapper: ({ children }) => (
+        <DataAccessProvider dataAccess={mockDataAccess}>
+          {children}
+        </DataAccessProvider>
+      ),
+    },
   );
   return { ...hook, onSuccess };
 }

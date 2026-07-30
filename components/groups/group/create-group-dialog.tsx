@@ -32,7 +32,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createGroupInputSchema } from "@/lib/data/data-access";
 import { useCreateGroupDialogStore } from "@/lib/data/create-group-dialog-store";
-import { guestDataAccess } from "@/lib/data/guest-store";
+import { useDataAccessContext } from "@/lib/data/data-access-context";
 import type { CreateGroupInput } from "@/lib/data/types";
 import { getCurrencyOptions } from "@/lib/splits/currency";
 
@@ -40,6 +40,7 @@ const CURRENCY_OPTIONS = getCurrencyOptions();
 
 export function CreateGroupDialog() {
   const router = useRouter();
+  const dataAccess = useDataAccessContext();
   const open = useCreateGroupDialogStore((state) => state.open);
   const setOpen = useCreateGroupDialogStore((state) => state.setOpen);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function CreateGroupDialog() {
   async function onSubmit(values: CreateGroupInput) {
     setSubmitError(null);
     try {
-      const group = await guestDataAccess.createGroup(values);
+      const group = await dataAccess.createGroup(values);
       setOpen(false);
       router.push(`/groups/${group.id}`);
     } catch {

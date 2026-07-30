@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DataAccessError } from "@/lib/data/data-access";
-import { guestDataAccess } from "@/lib/data/guest-store";
+import { useDataAccessContext } from "@/lib/data/data-access-context";
 
 export function DeleteGroupDialog({
   groupId,
@@ -28,6 +28,7 @@ export function DeleteGroupDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const dataAccess = useDataAccessContext();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -35,7 +36,7 @@ export function DeleteGroupDialog({
     setPending(true);
     setError(null);
     try {
-      await guestDataAccess.deleteGroup(groupId);
+      await dataAccess.deleteGroup(groupId);
       onOpenChange(false);
       router.push("/groups");
     } catch (err) {

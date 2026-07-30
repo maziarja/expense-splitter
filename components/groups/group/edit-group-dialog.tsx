@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateGroupInputSchema } from "@/lib/data/data-access";
-import { guestDataAccess } from "@/lib/data/guest-store";
+import { useDataAccessContext } from "@/lib/data/data-access-context";
 import type { Group, UpdateGroupInput } from "@/lib/data/types";
 import { getCurrencyOptions } from "@/lib/splits/currency";
 
@@ -47,6 +47,7 @@ export function EditGroupDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const dataAccess = useDataAccessContext();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<UpdateGroupInput>({
@@ -61,7 +62,7 @@ export function EditGroupDialog({
   async function onSubmit(values: UpdateGroupInput) {
     setSubmitError(null);
     try {
-      await guestDataAccess.updateGroup(group.id, values);
+      await dataAccess.updateGroup(group.id, values);
       onOpenChange(false);
     } catch {
       setSubmitError("Couldn't save changes. Please try again.");

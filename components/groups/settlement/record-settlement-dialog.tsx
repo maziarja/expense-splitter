@@ -24,7 +24,7 @@ import {
   createSettlementInputSchema,
   DataAccessError,
 } from "@/lib/data/data-access";
-import { guestDataAccess } from "@/lib/data/guest-store";
+import { useDataAccessContext } from "@/lib/data/data-access-context";
 import { dateInputToIso, todayDateValue } from "@/lib/forms/date-input";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency, sanitizeDecimalInput } from "@/lib/splits/currency";
@@ -54,6 +54,7 @@ export function RecordSettlementDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const dataAccess = useDataAccessContext();
   const [amountInput, setAmountInput] = useState(() => String(amount));
   const [dateValue, setDateValue] = useState(todayDateValue);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -90,7 +91,7 @@ export function RecordSettlementDialog({
         setSubmitError("Couldn't record the settlement. Please try again.");
         return;
       }
-      await guestDataAccess.createSettlement(groupId, parsed.data);
+      await dataAccess.createSettlement(groupId, parsed.data);
       toast.success("Settlement recorded", {
         description: capitalizeFirst(
           `${fromName} paid ${toName} ${formatCurrency(parsedAmount, currency)}`,
