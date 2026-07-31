@@ -43,7 +43,7 @@ export function SignInForm() {
       setSubmitError("Incorrect email or password.");
       return;
     }
-    router.push("/account");
+    router.push("/dashboard");
   }
 
   return (

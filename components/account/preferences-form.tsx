@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export function PreferencesForm({
   defaultCurrency,
   notificationsEnabled,
 }: PreferencesValues) {
+  const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<PreferencesValues>({
@@ -52,6 +54,7 @@ export function PreferencesForm({
     try {
       await updateUserPreference(values);
       toast.success("Preferences saved");
+      router.push("/dashboard");
     } catch {
       setSubmitError("Couldn't save your preferences. Please try again.");
     }

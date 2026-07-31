@@ -1,5 +1,8 @@
+import { ArrowLeftIcon } from "lucide-react";
+import Link from "next/link";
+
 import { PreferencesForm } from "@/components/account/preferences-form";
-import { SignOutButton } from "@/components/auth/sign-out-button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,17 +20,12 @@ export default async function AccountPage() {
   return (
     <main className="flex flex-1 items-center justify-center bg-bg-primary p-8">
       <div className="w-full max-w-sm space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              Welcome back, {session.user.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-xs text-text-tertiary">{session.user.email}</p>
-            <SignOutButton />
-          </CardContent>
-        </Card>
+        <Button asChild variant="ghost" size="sm" className="gap-1.5">
+          <Link href="/dashboard">
+            <ArrowLeftIcon aria-hidden="true" />
+            Back to dashboard
+          </Link>
+        </Button>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Preferences</CardTitle>

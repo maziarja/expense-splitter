@@ -52,7 +52,7 @@ export function SignUpForm() {
       );
       return;
     }
-    router.push("/account");
+    router.push("/dashboard");
   }
 
   return (
