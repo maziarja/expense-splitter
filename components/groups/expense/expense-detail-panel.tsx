@@ -65,7 +65,11 @@ export function ExpenseDetailPanel({
       </div>
       {expense.currency !== groupCurrency && (
         <p>
-          Converted at rate {expense.exchangeRate}:{" "}
+          Converted at rate {expense.exchangeRate}
+          {expense.rateIsUserSet && (
+            <span className="text-text-tertiary"> (manually set)</span>
+          )}
+          :{" "}
           <span className="font-mono tabular-nums">
             {formatCurrency(
               expense.amount * expense.exchangeRate,
