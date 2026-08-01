@@ -335,11 +335,13 @@ describe("handleSubmit success", () => {
 
   it("passes a user-set exchange rate when the expense currency differs from the group currency", async () => {
     const { result } = setup({ groupCurrency: "USD" });
-    fillValidEqualSplit(result);
     await act(async () => {
       result.current.onCurrencyChange("EUR");
+    });
+    act(() => {
       result.current.onExchangeRateInputChange("1.2");
     });
+    fillValidEqualSplit(result);
 
     await act(async () => {
       await result.current.handleSubmit(fakeSubmitEvent());
@@ -458,6 +460,91 @@ describe("live exchange rate fetch", () => {
 
     expect(result.current.exchangeRateInput).toBe("1.05");
     expect(result.current.rateStale).toBe(true);
+  });
+});
+
+describe("currency change clears currency-denominated fields", () => {
+  it("clears the amount, since it was denominated in the old currency", async () => {
+    const { result } = setup({ groupCurrency: "USD" });
+    act(() => {
+      result.current.onAmountInputChange("275");
+    });
+    expect(result.current.amountInput).toBe("275");
+
+    await act(async () => {
+      result.current.onCurrencyChange("MXN");
+    });
+
+    expect(result.current.amountInput).toBe("");
+  });
+
+  it("clears exact-split amounts, since they were denominated in the old currency", async () => {
+    const { result } = setup({ groupCurrency: "USD" });
+    act(() => {
+      result.current.setSplitType("exact");
+      result.current.onExactAmountChange(alex.id, "40");
+      result.current.onExactAmountChange(jordan.id, "60");
+    });
+    expect(result.current.exactAmounts).toEqual({
+      [alex.id]: "40",
+      [jordan.id]: "60",
+    });
+
+    await act(async () => {
+      result.current.onCurrencyChange("MXN");
+    });
+
+    expect(result.current.exactAmounts).toEqual({});
+  });
+
+  it("leaves percentages and share counts untouched, since they're dimensionless", async () => {
+    const { result } = setup({ groupCurrency: "USD" });
+    act(() => {
+      result.current.setSplitType("percentage");
+      result.current.onPercentageChange(alex.id, "50");
+      result.current.onPercentageChange(jordan.id, "50");
+    });
+
+    await act(async () => {
+      result.current.onCurrencyChange("MXN");
+    });
+
+    expect(result.current.percentages).toEqual({
+      [alex.id]: "50",
+      [jordan.id]: "50",
+    });
+
+    act(() => {
+      result.current.setSplitType("shares");
+      result.current.onShareCountChange(alex.id, "1");
+      result.current.onShareCountChange(jordan.id, "2");
+    });
+
+    await act(async () => {
+      result.current.onCurrencyChange("GBP");
+    });
+
+    expect(result.current.shareCounts).toEqual({
+      [alex.id]: "1",
+      [jordan.id]: "2",
+    });
+  });
+
+  it("also clears the amount when switching back to the group currency", async () => {
+    const { result } = setup({ groupCurrency: "USD" });
+    await act(async () => {
+      result.current.onCurrencyChange("EUR");
+    });
+    act(() => {
+      result.current.onAmountInputChange("50");
+    });
+    expect(result.current.amountInput).toBe("50");
+
+    await act(async () => {
+      result.current.onCurrencyChange("USD");
+    });
+
+    expect(result.current.amountInput).toBe("");
   });
 });
 

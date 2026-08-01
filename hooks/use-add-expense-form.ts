@@ -141,6 +141,9 @@ export function useAddExpenseForm({
 
   function changeCurrency(next: CurrencyCode) {
     setCurrency(next);
+
+    setAmountInput("");
+    setExactAmounts({});
     setRateFetchError(null);
     setRateStale(false);
     rateIsUserSetRef.current = false;
