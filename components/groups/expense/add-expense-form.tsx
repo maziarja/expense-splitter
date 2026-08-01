@@ -4,6 +4,7 @@ import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fi
 import { Button } from "@/components/ui/button";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -51,6 +52,9 @@ export function AddExpenseForm({
     onCurrencyChange,
     exchangeRateInput,
     onExchangeRateInputChange,
+    fetchingRate,
+    rateFetchError,
+    rateStale,
     paidBy,
     selectPayer,
     category,
@@ -132,6 +136,18 @@ export function AddExpenseForm({
               value={exchangeRateInput}
               onChange={(e) => onExchangeRateInputChange(e.target.value)}
             />
+            {fetchingRate && (
+              <FieldDescription>Fetching live rate…</FieldDescription>
+            )}
+            {!fetchingRate && rateFetchError && (
+              <FieldDescription>{rateFetchError}</FieldDescription>
+            )}
+            {!fetchingRate && !rateFetchError && rateStale && (
+              <FieldDescription>
+                This rate may be outdated — exchange rate service is unreachable
+                right now.
+              </FieldDescription>
+            )}
           </Field>
         )}
 

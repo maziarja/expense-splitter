@@ -11,6 +11,11 @@ import type { Expense, Member } from "@/lib/data/types";
 
 import { useAddExpenseForm } from "./use-add-expense-form";
 
+const getExchangeRateAction = vi.fn();
+vi.mock("@/lib/actions/exchange-rate", () => ({
+  getExchangeRateAction: (...args: unknown[]) => getExchangeRateAction(...args),
+}));
+
 const createExpense = vi.fn();
 const updateExpense = vi.fn();
 const mockDataAccess = {
@@ -104,6 +109,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   createExpense.mockResolvedValue({} as never);
   updateExpense.mockResolvedValue({} as never);
+  getExchangeRateAction.mockResolvedValue({
+    ok: true,
+    data: { rate: 1.1, fetchedAt: new Date(), stale: false },
+  });
 });
 
 describe("initial state", () => {
@@ -327,7 +336,7 @@ describe("handleSubmit success", () => {
   it("passes a user-set exchange rate when the expense currency differs from the group currency", async () => {
     const { result } = setup({ groupCurrency: "USD" });
     fillValidEqualSplit(result);
-    act(() => {
+    await act(async () => {
       result.current.onCurrencyChange("EUR");
       result.current.onExchangeRateInputChange("1.2");
     });
@@ -358,6 +367,97 @@ describe("handleSubmit success", () => {
     );
     expect(result.current.pending).toBe(false);
     expect(onSuccess).not.toHaveBeenCalled();
+  });
+});
+
+describe("live exchange rate fetch", () => {
+  it("prefills the exchange rate from a live fetch after switching currency", async () => {
+    const { result } = setup({ groupCurrency: "USD" });
+
+    await act(async () => {
+      result.current.onCurrencyChange("EUR");
+    });
+
+    expect(getExchangeRateAction).toHaveBeenCalledWith("EUR", "USD");
+    expect(result.current.exchangeRateInput).toBe("1.1");
+    expect(result.current.fetchingRate).toBe(false);
+    expect(result.current.rateFetchError).toBeNull();
+  });
+
+  it("resets the rate to 1 and skips fetching when switching back to the group currency", async () => {
+    const { result } = setup({ groupCurrency: "USD" });
+    await act(async () => {
+      result.current.onCurrencyChange("EUR");
+    });
+    getExchangeRateAction.mockClear();
+
+    await act(async () => {
+      result.current.onCurrencyChange("USD");
+    });
+
+    expect(result.current.exchangeRateInput).toBe("1");
+    expect(getExchangeRateAction).not.toHaveBeenCalled();
+  });
+
+  it("doesn't let a slow live fetch overwrite a rate the user already typed", async () => {
+    let resolveFetch!: (value: {
+      ok: true;
+      data: { rate: number; fetchedAt: Date; stale: boolean };
+    }) => void;
+    getExchangeRateAction.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { result } = setup({ groupCurrency: "USD" });
+
+    act(() => {
+      result.current.onCurrencyChange("EUR");
+    });
+    act(() => {
+      result.current.onExchangeRateInputChange("1.5");
+    });
+
+    await act(async () => {
+      resolveFetch({
+        ok: true,
+        data: { rate: 1.1, fetchedAt: new Date(), stale: false },
+      });
+    });
+
+    expect(result.current.exchangeRateInput).toBe("1.5");
+  });
+
+  it("surfaces an error and leaves the default rate when the live fetch fails", async () => {
+    getExchangeRateAction.mockResolvedValueOnce({
+      ok: false,
+      message: "Couldn't fetch a live exchange rate. Enter it manually.",
+    });
+    const { result } = setup({ groupCurrency: "USD" });
+
+    await act(async () => {
+      result.current.onCurrencyChange("EUR");
+    });
+
+    expect(result.current.rateFetchError).toBe(
+      "Couldn't fetch a live exchange rate. Enter it manually.",
+    );
+    expect(result.current.exchangeRateInput).toBe("1");
+  });
+
+  it("flags the rate as stale when the fetch falls back to a cached value", async () => {
+    getExchangeRateAction.mockResolvedValueOnce({
+      ok: true,
+      data: { rate: 1.05, fetchedAt: new Date(), stale: true },
+    });
+    const { result } = setup({ groupCurrency: "USD" });
+
+    await act(async () => {
+      result.current.onCurrencyChange("EUR");
+    });
+
+    expect(result.current.exchangeRateInput).toBe("1.05");
+    expect(result.current.rateStale).toBe(true);
   });
 });
 

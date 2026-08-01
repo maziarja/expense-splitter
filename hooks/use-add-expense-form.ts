@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 
+import { getExchangeRateAction } from "@/lib/actions/exchange-rate";
 import { createExpenseInputSchema } from "@/lib/data/data-access";
 import {
   useDataAccessContext,
@@ -88,6 +89,12 @@ export function useAddExpenseForm({
   const [exchangeRateInput, setExchangeRateInput] = useState(() =>
     expense ? String(expense.exchangeRate) : "1",
   );
+
+  const rateIsUserSetRef = useRef(expense?.rateIsUserSet ?? false);
+  const latestRateFetchRef = useRef<CurrencyCode | null>(null);
+  const [fetchingRate, setFetchingRate] = useState(false);
+  const [rateFetchError, setRateFetchError] = useState<string | null>(null);
+  const [rateStale, setRateStale] = useState(false);
   const [paidBy, setPaidBy] = useState(() =>
     expense
       ? expense.paidBy
@@ -130,6 +137,40 @@ export function useAddExpenseForm({
         ? prev.filter((id) => id !== memberId)
         : [...prev, memberId],
     );
+  }
+
+  function changeCurrency(next: CurrencyCode) {
+    setCurrency(next);
+    setRateFetchError(null);
+    setRateStale(false);
+    rateIsUserSetRef.current = false;
+
+    if (next === groupCurrency) {
+      latestRateFetchRef.current = null;
+      setExchangeRateInput("1");
+      return;
+    }
+
+    latestRateFetchRef.current = next;
+    setFetchingRate(true);
+    getExchangeRateAction(next, groupCurrency)
+      .then((result) => {
+        // Ignore a result that arrives after the user either typed a manual
+        // rate or switched currency again — it no longer describes what's
+        // on screen.
+        if (latestRateFetchRef.current !== next || rateIsUserSetRef.current) {
+          return;
+        }
+        if (result.ok) {
+          setExchangeRateInput(String(result.data.rate));
+          setRateStale(result.data.stale);
+        } else {
+          setRateFetchError(result.message);
+        }
+      })
+      .finally(() => {
+        if (latestRateFetchRef.current === next) setFetchingRate(false);
+      });
   }
 
   function selectPayer(memberId: string) {
@@ -262,7 +303,8 @@ export function useAddExpenseForm({
           : Number.isFinite(exchangeRate) && exchangeRate > 0
             ? exchangeRate
             : 1,
-      rateIsUserSet: currency === groupCurrency ? undefined : true,
+      rateIsUserSet:
+        currency === groupCurrency ? undefined : rateIsUserSetRef.current,
       paidBy,
       splitType,
       splits: computation.splits,
@@ -299,13 +341,15 @@ export function useAddExpenseForm({
     description,
     setDescription,
     currency,
-    onCurrencyChange: (next: CurrencyCode) => {
-      setCurrency(next);
-      if (next === groupCurrency) setExchangeRateInput("1");
-    },
+    onCurrencyChange: changeCurrency,
     exchangeRateInput,
-    onExchangeRateInputChange: (value: string) =>
-      setExchangeRateInput(sanitizeDecimalInput(value)),
+    onExchangeRateInputChange: (value: string) => {
+      rateIsUserSetRef.current = true;
+      setExchangeRateInput(sanitizeDecimalInput(value));
+    },
+    fetchingRate,
+    rateFetchError,
+    rateStale,
     paidBy,
     selectPayer,
     category,
