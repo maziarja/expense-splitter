@@ -301,3 +301,22 @@ export function createCategory(
   };
   return { data: withGroup(data, updated), category };
 }
+
+export function deleteCategory(
+  data: GuestData,
+  groupId: string,
+  categoryId: string,
+): GuestData {
+  const group = requireGroup(data, groupId);
+  if (!(group.categories ?? []).some((c) => c.id === categoryId)) {
+    throw new DataAccessError(
+      `Category "${categoryId}" not found in group "${groupId}"`,
+      "CATEGORY_NOT_FOUND",
+    );
+  }
+  const updated: GuestGroup = {
+    ...group,
+    categories: group.categories.filter((c) => c.id !== categoryId),
+  };
+  return withGroup(data, updated);
+}

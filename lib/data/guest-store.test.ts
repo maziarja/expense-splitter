@@ -169,4 +169,22 @@ describe("guestDataAccess", () => {
       }),
     ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
   });
+
+  it("deletes a custom category", async () => {
+    const category = await guestDataAccess.createCategory("grp_birthday", {
+      name: "Party Supplies",
+    });
+    await guestDataAccess.deleteCategory("grp_birthday", category.id);
+
+    const detail = await guestDataAccess.getGroup("grp_birthday");
+    expect(detail?.categories.map((c) => c.name)).not.toContain(
+      "Party Supplies",
+    );
+  });
+
+  it("throws when deleting a category that doesn't exist", async () => {
+    await expect(
+      guestDataAccess.deleteCategory("grp_birthday", "not-a-real-category"),
+    ).rejects.toMatchObject({ code: "CATEGORY_NOT_FOUND" });
+  });
 });

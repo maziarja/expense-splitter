@@ -1,7 +1,10 @@
 "use client";
 
 import { unwrapActionResult } from "@/lib/actions/action-result";
-import { createCategoryAction } from "@/lib/actions/categories";
+import {
+  createCategoryAction,
+  deleteCategoryAction,
+} from "@/lib/actions/categories";
 import {
   addMemberAction,
   createGroupAction,
@@ -71,5 +74,8 @@ export const authenticatedDataAccess: DataAccess = {
 
   async createCategory(groupId, input) {
     return unwrapActionResult(await createCategoryAction(groupId, input));
+  },
+  async deleteCategory(groupId, categoryId) {
+    return unwrapActionResult(await deleteCategoryAction(groupId, categoryId));
   },
 };

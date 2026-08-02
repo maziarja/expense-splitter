@@ -19,3 +19,15 @@ export async function createCategoryAction(
   if (result.ok) revalidateDashboard(groupId);
   return result;
 }
+
+export async function deleteCategoryAction(
+  groupId: string,
+  categoryId: string,
+): Promise<ActionResult<void>> {
+  await requireAuth();
+  const result = await runAction(() =>
+    prismaDataAccess.deleteCategory(groupId, categoryId),
+  );
+  if (result.ok) revalidateDashboard(groupId);
+  return result;
+}

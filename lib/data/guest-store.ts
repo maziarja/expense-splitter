@@ -9,6 +9,7 @@ import {
   createExpense as createExpenseInData,
   createGroup as createGroupInData,
   createSettlement as createSettlementInData,
+  deleteCategory as deleteCategoryInData,
   deleteExpense as deleteExpenseInData,
   deleteGroup as deleteGroupInData,
   emptyGuestData,
@@ -176,5 +177,9 @@ export const guestDataAccess: DataAccess = {
     );
     commit(data);
     return category;
+  },
+
+  async deleteCategory(groupId, categoryId) {
+    commit(deleteCategoryInData(currentData(), groupId, categoryId));
   },
 };

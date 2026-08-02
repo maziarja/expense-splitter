@@ -1,6 +1,7 @@
 "use client";
 
-import { CreateCategoryDialog } from "@/components/groups/expense/create-category-dialog";
+import { useMemo, useState } from "react";
+import { ManageCategoriesDialog } from "@/components/groups/expense/manage-categories-dialog";
 import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,6 +93,22 @@ export function AddExpenseForm({
     onSuccess,
   });
 
+  // A just-created category needs to be selectable and shown immediately,
+  // but in authenticated mode `categories` only reflects it once
+  // router.refresh()'s async round trip completes. Merging in an optimistic
+  // copy (keyed by its real id, same as the eventual server-confirmed one)
+  // closes that gap without ever swapping one SelectItem for a differently
+  // -keyed one later — that swap is what previously confused Radix Select
+  // into firing a spurious onValueChange("").
+  const [pendingCategories, setPendingCategories] = useState<Category[]>([]);
+  const allCategories = useMemo(() => {
+    const knownIds = new Set(categories.map((c) => c.id));
+    return [
+      ...categories,
+      ...pendingCategories.filter((c) => !knownIds.has(c.id)),
+    ];
+  }, [categories, pendingCategories]);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -182,7 +199,19 @@ export function AddExpenseForm({
           <Field>
             <FieldLabel htmlFor="expense-category">Category</FieldLabel>
             <div className="flex gap-1">
-              <Select value={category} onValueChange={setCategory}>
+              <Select
+                value={category}
+                onValueChange={(v) => {
+                  // Radix Select can fire onValueChange("") as an internal
+                  // correction when its item collection changes shape out
+                  // from under the current value (e.g. right as a freshly
+                  // created category's item mounts). There's no legitimate
+                  // "no category" state in this app — category always
+                  // defaults to "Other" — so an empty callback is never a
+                  // real user selection and should just be ignored.
+                  if (v) setCategory(v);
+                }}
+              >
                 <SelectTrigger id="expense-category" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -192,21 +221,38 @@ export function AddExpenseForm({
                       {c}
                     </SelectItem>
                   ))}
-                  {categories.length > 0 && <SelectSeparator />}
-                  {categories.map((c) => (
+                  {allCategories.length > 0 && <SelectSeparator />}
+                  {allCategories.map((c) => (
                     <SelectItem key={c.id} value={c.name}>
                       {c.name}
                     </SelectItem>
                   ))}
+                  {/* Safety net for a genuinely orphaned value only (e.g.
+                      editing an expense whose category was deleted from the
+                      group since) — a freshly-created category never hits
+                      this, since it's already in allCategories above. */}
+                  {category &&
+                    !(PREDEFINED_CATEGORIES as readonly string[]).includes(
+                      category,
+                    ) &&
+                    !allCategories.some((c) => c.name === category) && (
+                      <SelectItem value={category}>{category}</SelectItem>
+                    )}
                 </SelectContent>
               </Select>
-              <CreateCategoryDialog
+              <ManageCategoriesDialog
                 groupId={groupId}
-                existingNames={[
-                  ...PREDEFINED_CATEGORIES,
-                  ...categories.map((c) => c.name),
-                ]}
-                onCreated={(c) => setCategory(c.name)}
+                categories={allCategories}
+                onCreated={(c) => {
+                  setPendingCategories((prev) => [...prev, c]);
+                  setCategory(c.name);
+                }}
+                onDeleted={(c) => {
+                  setPendingCategories((prev) =>
+                    prev.filter((p) => p.id !== c.id),
+                  );
+                  if (c.name === category) setCategory("Other");
+                }}
               />
             </div>
           </Field>

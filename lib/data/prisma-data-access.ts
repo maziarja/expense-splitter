@@ -645,4 +645,21 @@ export const prismaDataAccess: DataAccess = {
     });
     return toCategory(category);
   },
+
+  async deleteCategory(groupId, categoryId) {
+    const { id: userId } = await getSessionUser();
+    await prisma.$transaction(async (tx) => {
+      await requireGroupMembership(tx, groupId, userId);
+      const existing = await tx.category.findFirst({
+        where: { id: categoryId, groupId },
+      });
+      if (!existing) {
+        throw new DataAccessError(
+          `Category "${categoryId}" not found in group "${groupId}"`,
+          "CATEGORY_NOT_FOUND",
+        );
+      }
+      await tx.category.delete({ where: { id: categoryId } });
+    });
+  },
 };

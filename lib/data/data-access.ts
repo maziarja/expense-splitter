@@ -67,6 +67,7 @@ export type DataAccessErrorCode =
   | "GROUP_NOT_SETTLED"
   | "NO_DEBT_EXISTS"
   | "CATEGORY_NAME_TAKEN"
+  | "CATEGORY_NOT_FOUND"
   | "UNAUTHENTICATED";
 
 export class DataAccessError extends Error {
@@ -109,4 +110,5 @@ export type DataAccess = {
     groupId: string,
     input: CreateCategoryInput,
   ): Promise<Category>;
+  deleteCategory(groupId: string, categoryId: string): Promise<void>;
 };
