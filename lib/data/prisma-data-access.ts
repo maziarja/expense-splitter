@@ -3,7 +3,11 @@ import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { getCachedSession } from "../auth";
 import { prisma } from "../prisma";
 import { calculateBalances } from "../splits/balance";
-import type { CurrencyCode } from "../splits/constants";
+import {
+  normalizeCategoryName,
+  PREDEFINED_CATEGORIES,
+  type CurrencyCode,
+} from "../splits/constants";
 import { isNegligibleAmount } from "../splits/currency";
 import type { SplitType } from "../splits/schema";
 import { pickAvatarColor } from "./avatar-color";
@@ -12,7 +16,14 @@ import {
   type DataAccess,
   type DataAccessErrorCode,
 } from "./data-access";
-import type { Expense, Group, Member, Settlement, Split } from "./types";
+import type {
+  Category,
+  Expense,
+  Group,
+  Member,
+  Settlement,
+  Split,
+} from "./types";
 
 type PrismaLike = PrismaClient | Prisma.TransactionClient;
 
@@ -156,6 +167,14 @@ function toSettlement(row: {
     exchangeRate: row.exchangeRate.toNumber(),
     date: row.date.toISOString(),
   };
+}
+
+function toCategory(row: {
+  id: string;
+  groupId: string;
+  name: string;
+}): Category {
+  return { id: row.id, groupId: row.groupId, name: row.name };
 }
 
 function toGroup(row: {
@@ -302,6 +321,7 @@ export const prismaDataAccess: DataAccess = {
         members: true,
         expenses: { include: { splits: true }, orderBy: { date: "desc" } },
         settlements: { orderBy: { date: "desc" } },
+        categories: { orderBy: { createdAt: "asc" } },
       },
     });
     if (!group) return null;
@@ -333,6 +353,7 @@ export const prismaDataAccess: DataAccess = {
       members: group.members.map(toMember),
       expenses: group.expenses.map(toExpense),
       settlements: group.settlements.map(toSettlement),
+      categories: group.categories.map(toCategory),
       memberBalances,
       settlementSuggestions,
     };
@@ -599,5 +620,29 @@ export const prismaDataAccess: DataAccess = {
       await recalculateAndPersistBalances(tx, groupId);
       return toSettlement(settlement);
     });
+  },
+
+  async createCategory(groupId, input) {
+    const { id: userId } = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, userId);
+    const name = normalizeCategoryName(input.name);
+    const existing = await prisma.category.findMany({
+      where: { groupId },
+      select: { name: true },
+    });
+    const taken = [
+      ...PREDEFINED_CATEGORIES,
+      ...existing.map((c) => c.name),
+    ].some((c) => c.toLowerCase() === name.toLowerCase());
+    if (taken) {
+      throw new DataAccessError(
+        `Category "${name}" already exists`,
+        "CATEGORY_NAME_TAKEN",
+      );
+    }
+    const category = await prisma.category.create({
+      data: { group: { connect: { id: groupId } }, name },
+    });
+    return toCategory(category);
   },
 };

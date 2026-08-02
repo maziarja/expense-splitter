@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Expense, Member } from "@/lib/data/types";
+import type { Category, Expense, Member } from "@/lib/data/types";
 import type { CurrencyCode } from "@/lib/splits/constants";
 
 const VISIBLE_COUNT = 5;
@@ -23,6 +23,7 @@ export function RecentExpensesCard({
   membersById,
   activeMembers,
   groupCurrency,
+  categories,
   defaultPayerId,
 }: {
   groupId: string;
@@ -30,6 +31,7 @@ export function RecentExpensesCard({
   membersById: Map<string, Member>;
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
+  categories: Category[];
   defaultPayerId?: string;
 }) {
   const sorted = useMemo(
@@ -54,6 +56,7 @@ export function RecentExpensesCard({
           groupId={groupId}
           activeMembers={activeMembers}
           groupCurrency={groupCurrency}
+          categories={categories}
           defaultPayerId={defaultPayerId}
         />
         {sorted.length === 0 ? (
@@ -71,6 +74,7 @@ export function RecentExpensesCard({
                 groupId={groupId}
                 activeMembers={activeMembers}
                 groupCurrency={groupCurrency}
+                categories={categories}
               />
             ))}
           </ul>

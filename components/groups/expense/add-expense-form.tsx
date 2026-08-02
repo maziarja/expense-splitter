@@ -1,5 +1,6 @@
 "use client";
 
+import { CreateCategoryDialog } from "@/components/groups/expense/create-category-dialog";
 import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,13 +15,14 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { useAddExpenseForm } from "@/hooks/use-add-expense-form";
-import type { Expense, Member } from "@/lib/data/types";
+import type { Category, Expense, Member } from "@/lib/data/types";
 import { PREDEFINED_CATEGORIES } from "@/lib/splits/constants";
-import type { CurrencyCode, PredefinedCategory } from "@/lib/splits/constants";
+import type { CurrencyCode } from "@/lib/splits/constants";
 import { getCurrencyOptions } from "@/lib/splits/currency";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +32,7 @@ export function AddExpenseForm({
   groupId,
   activeMembers,
   groupCurrency,
+  categories,
   defaultPayerId,
   expense,
   onSuccess,
@@ -38,6 +41,7 @@ export function AddExpenseForm({
   groupId: string;
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
+  categories: Category[];
   defaultPayerId?: string;
   expense?: Expense;
   onSuccess: () => void;
@@ -177,21 +181,34 @@ export function AddExpenseForm({
           </Field>
           <Field>
             <FieldLabel htmlFor="expense-category">Category</FieldLabel>
-            <Select
-              value={category}
-              onValueChange={(next: PredefinedCategory) => setCategory(next)}
-            >
-              <SelectTrigger id="expense-category" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PREDEFINED_CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-1">
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger id="expense-category" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PREDEFINED_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                  {categories.length > 0 && <SelectSeparator />}
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.name}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <CreateCategoryDialog
+                groupId={groupId}
+                existingNames={[
+                  ...PREDEFINED_CATEGORIES,
+                  ...categories.map((c) => c.name),
+                ]}
+                onCreated={(c) => setCategory(c.name)}
+              />
+            </div>
           </Field>
         </div>
 

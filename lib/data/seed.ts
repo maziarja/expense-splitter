@@ -44,6 +44,7 @@ function toGuestGroup(raw: RawGroup): GuestGroup {
     members: raw.members.map((member) => toMember(member, raw.id)),
     expenses: raw.expenses,
     settlements: raw.settlements,
+    categories: [],
   };
 }
 

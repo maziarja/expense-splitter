@@ -31,3 +31,10 @@ export const PREDEFINED_CATEGORIES = [
 ] as const;
 
 export type PredefinedCategory = (typeof PREDEFINED_CATEGORIES)[number];
+
+// Collapses internal whitespace runs (e.g. "Food   &  Drink" -> "Food & Drink")
+// in addition to trimming, so visually-identical names can't be saved as
+// separate categories just by differing in spacing.
+export function normalizeCategoryName(name: string): string {
+  return name.trim().replace(/\s+/g, " ");
+}

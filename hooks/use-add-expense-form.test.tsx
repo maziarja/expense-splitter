@@ -576,10 +576,10 @@ describe("edit mode", () => {
     expect(result.current.percentages).toEqual({});
   });
 
-  it("falls back to Other when the stored category isn't one of the predefined options", () => {
-    const expense = makeExpense({ category: "Some Legacy Category" });
+  it("preserves a stored category even if it's not one of the predefined options (e.g. a custom or since-deleted category)", () => {
+    const expense = makeExpense({ category: "Some Custom Category" });
     const { result } = setup({ expense });
-    expect(result.current.category).toBe("Other");
+    expect(result.current.category).toBe("Some Custom Category");
   });
 
   it("seeds exactAmounts for an exact-split expense", () => {

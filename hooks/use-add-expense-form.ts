@@ -9,11 +9,7 @@ import {
 } from "@/lib/data/data-access-context";
 import type { Expense, Member } from "@/lib/data/types";
 import { dateInputToIso, todayDateValue } from "@/lib/forms/date-input";
-import {
-  PREDEFINED_CATEGORIES,
-  type CurrencyCode,
-  type PredefinedCategory,
-} from "@/lib/splits/constants";
+import type { CurrencyCode } from "@/lib/splits/constants";
 import {
   formatCurrency,
   fromMinorUnits,
@@ -30,12 +26,6 @@ import { calculateSharesSplit } from "@/lib/splits/shares";
 
 function dateValueFromIso(iso: string): string {
   return format(parseISO(iso), "yyyy-MM-dd");
-}
-
-function categoryFromExpense(expense: Expense): PredefinedCategory {
-  return (PREDEFINED_CATEGORIES as readonly string[]).includes(expense.category)
-    ? (expense.category as PredefinedCategory)
-    : "Other";
 }
 
 function splitValuesFromExpense(expense: Expense): {
@@ -100,8 +90,8 @@ export function useAddExpenseForm({
       ? expense.paidBy
       : (activeMembers.find((m) => m.id === defaultPayerId)?.id ?? ""),
   );
-  const [category, setCategory] = useState<PredefinedCategory>(() =>
-    expense ? categoryFromExpense(expense) : "Other",
+  const [category, setCategory] = useState<string>(() =>
+    expense ? expense.category : "Other",
   );
   const [date, setDate] = useState(() =>
     expense ? dateValueFromIso(expense.date) : todayDateValue(),

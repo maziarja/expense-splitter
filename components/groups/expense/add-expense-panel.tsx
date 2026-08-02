@@ -13,18 +13,20 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { Member } from "@/lib/data/types";
+import type { Category, Member } from "@/lib/data/types";
 import type { CurrencyCode } from "@/lib/splits/constants";
 
 export function AddExpensePanel({
   groupId,
   activeMembers,
   groupCurrency,
+  categories,
   defaultPayerId,
 }: {
   groupId: string;
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
+  categories: Category[];
   defaultPayerId?: string;
 }) {
   const isMobile = useIsMobile();
@@ -35,6 +37,7 @@ export function AddExpensePanel({
       groupId={groupId}
       activeMembers={activeMembers}
       groupCurrency={groupCurrency}
+      categories={categories}
       defaultPayerId={defaultPayerId}
       onSuccess={() => setOpen(false)}
       onCancel={() => setOpen(false)}

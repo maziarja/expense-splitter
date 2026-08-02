@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { DataAccess } from "./data-access";
 import {
   addMember as addMemberInData,
+  createCategory as createCategoryInData,
   createExpense as createExpenseInData,
   createGroup as createGroupInData,
   createSettlement as createSettlementInData,
@@ -165,5 +166,15 @@ export const guestDataAccess: DataAccess = {
     );
     commit(data);
     return settlement;
+  },
+
+  async createCategory(groupId, input) {
+    const { data, category } = createCategoryInData(
+      currentData(),
+      groupId,
+      input,
+    );
+    commit(data);
+    return category;
   },
 };

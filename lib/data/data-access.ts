@@ -6,6 +6,8 @@ import {
 } from "../splits/schema";
 import type {
   AddMemberInput,
+  Category,
+  CreateCategoryInput,
   CreateExpenseInput,
   CreateGroupInput,
   CreateSettlementInput,
@@ -53,6 +55,10 @@ export const createSettlementInputSchema = z
     path: ["to"],
   });
 
+export const createCategoryInputSchema = z.object({
+  name: z.string().min(1, "Category name is required"),
+});
+
 export type DataAccessErrorCode =
   | "GROUP_NOT_FOUND"
   | "MEMBER_NOT_FOUND"
@@ -60,6 +66,7 @@ export type DataAccessErrorCode =
   | "MEMBER_HAS_BALANCE"
   | "GROUP_NOT_SETTLED"
   | "NO_DEBT_EXISTS"
+  | "CATEGORY_NAME_TAKEN"
   | "UNAUTHENTICATED";
 
 export class DataAccessError extends Error {
@@ -97,4 +104,9 @@ export type DataAccess = {
     groupId: string,
     input: CreateSettlementInput,
   ): Promise<Settlement>;
+
+  createCategory(
+    groupId: string,
+    input: CreateCategoryInput,
+  ): Promise<Category>;
 };

@@ -33,9 +33,16 @@ export type Group = {
   members: Member[];
 };
 
+export type Category = {
+  id: string;
+  groupId: string;
+  name: string;
+};
+
 export type GroupDetail = Group & {
   expenses: Expense[];
   settlements: Settlement[];
+  categories: Category[];
   memberBalances: MemberBalance[];
   settlementSuggestions: SettlementSuggestion[];
 };
@@ -69,3 +76,7 @@ export type CreateExpenseInput = Omit<Expense, "id">;
 export type UpdateExpenseInput = CreateExpenseInput;
 
 export type CreateSettlementInput = Omit<Settlement, "id">;
+
+export type CreateCategoryInput = {
+  name: string;
+};

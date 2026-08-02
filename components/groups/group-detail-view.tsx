@@ -99,6 +99,7 @@ export function GroupDetailView({
           membersById={membersById}
           activeMembers={activeMembers}
           groupCurrency={group.currency}
+          categories={group.categories}
           defaultPayerId={you?.id}
         />
 

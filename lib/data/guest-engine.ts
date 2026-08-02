@@ -1,8 +1,14 @@
 import { calculateBalances } from "../splits/balance";
+import {
+  normalizeCategoryName,
+  PREDEFINED_CATEGORIES,
+} from "../splits/constants";
 import { DataAccessError } from "./data-access";
 import { getCurrentMember } from "./current-member";
 import type {
   AddMemberInput,
+  Category,
+  CreateCategoryInput,
   CreateExpenseInput,
   CreateGroupInput,
   CreateSettlementInput,
@@ -19,6 +25,7 @@ import type {
 export type GuestGroup = Group & {
   expenses: Expense[];
   settlements: Settlement[];
+  categories: Category[];
 };
 
 export type GuestData = {
@@ -80,7 +87,15 @@ export function toGroupSummary(group: GuestGroup): GroupSummary {
 
 export function toGroupDetail(group: GuestGroup): GroupDetail {
   const { memberBalances, settlementSuggestions } = computeBalances(group);
-  return { ...group, memberBalances, settlementSuggestions };
+  // `categories` falls back to [] for sessionStorage state persisted
+  // before this field existed — sessionStorage isn't versioned, so a tab
+  // left open across this change would otherwise crash on read.
+  return {
+    ...group,
+    categories: group.categories ?? [],
+    memberBalances,
+    settlementSuggestions,
+  };
 }
 
 function withGroup(data: GuestData, group: GuestGroup): GuestData {
@@ -97,6 +112,7 @@ export function createGroup(data: GuestData, input: CreateGroupInput) {
     members: [],
     expenses: [],
     settlements: [],
+    categories: [],
   };
   return { data: withGroup(data, group), group };
 }
@@ -258,4 +274,30 @@ export function createSettlement(
     settlements: [...group.settlements, settlement],
   };
   return { data: withGroup(data, updated), settlement };
+}
+
+export function createCategory(
+  data: GuestData,
+  groupId: string,
+  input: CreateCategoryInput,
+) {
+  const group = requireGroup(data, groupId);
+  const existingCategories = group.categories ?? [];
+  const name = normalizeCategoryName(input.name);
+  const taken = [
+    ...PREDEFINED_CATEGORIES,
+    ...existingCategories.map((c) => c.name),
+  ].some((existing) => existing.toLowerCase() === name.toLowerCase());
+  if (taken) {
+    throw new DataAccessError(
+      `Category "${name}" already exists in group "${groupId}"`,
+      "CATEGORY_NAME_TAKEN",
+    );
+  }
+  const category: Category = { id: generateId(), groupId, name };
+  const updated: GuestGroup = {
+    ...group,
+    categories: [...existingCategories, category],
+  };
+  return { data: withGroup(data, updated), category };
 }

@@ -115,8 +115,21 @@ model Group {
   expenses    Expense[]
   settlements Settlement[]
   balances    Balance[]
+  categories  Category[]
 
   @@map("group")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  groupId   String
+  name      String
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, name])
+  @@map("category")
 }
 
 model Member {

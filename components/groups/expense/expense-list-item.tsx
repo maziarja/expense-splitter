@@ -19,7 +19,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { Expense, Member, SplitType } from "@/lib/data/types";
+import type { Category, Expense, Member, SplitType } from "@/lib/data/types";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency } from "@/lib/splits/currency";
 
@@ -36,6 +36,7 @@ export function ExpenseListItem({
   groupId,
   activeMembers,
   groupCurrency,
+  categories,
 }: {
   expense: Expense;
   payer: Member | undefined;
@@ -43,6 +44,7 @@ export function ExpenseListItem({
   groupId: string;
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
+  categories: Category[];
 }) {
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
@@ -56,6 +58,7 @@ export function ExpenseListItem({
       groupId={groupId}
       activeMembers={activeMembers}
       groupCurrency={groupCurrency}
+      categories={categories}
       expense={expense}
       onSuccess={() => setIsEditing(false)}
       onCancel={() => setIsEditing(false)}

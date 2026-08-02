@@ -120,4 +120,53 @@ describe("guestDataAccess", () => {
       guestDataAccess.deleteExpense("grp_birthday", "not-a-real-expense"),
     ).rejects.toMatchObject({ code: "EXPENSE_NOT_FOUND" });
   });
+
+  it("creates a custom category and lists it on the group", async () => {
+    const category = await guestDataAccess.createCategory("grp_birthday", {
+      name: "Party Supplies",
+    });
+    expect(category.name).toBe("Party Supplies");
+
+    const detail = await guestDataAccess.getGroup("grp_birthday");
+    expect(detail?.categories).toContainEqual(category);
+  });
+
+  it("rejects a custom category name that collides with a predefined one, case-insensitively", async () => {
+    await expect(
+      guestDataAccess.createCategory("grp_birthday", { name: "food & drink" }),
+    ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
+  });
+
+  it("rejects a custom category name that collides with an existing custom one", async () => {
+    await guestDataAccess.createCategory("grp_birthday", {
+      name: "Party Supplies",
+    });
+    await expect(
+      guestDataAccess.createCategory("grp_birthday", {
+        name: "party supplies",
+      }),
+    ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
+  });
+
+  it("normalizes internal whitespace so spacing variants collide as duplicates", async () => {
+    await guestDataAccess.createCategory("grp_birthday", {
+      name: "Party   Supplies",
+    });
+    await expect(
+      guestDataAccess.createCategory("grp_birthday", {
+        name: "party    supplies",
+      }),
+    ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
+
+    const detail = await guestDataAccess.getGroup("grp_birthday");
+    expect(detail?.categories.map((c) => c.name)).toContain("Party Supplies");
+  });
+
+  it("rejects a custom category name that's just a spacing variant of a predefined one", async () => {
+    await expect(
+      guestDataAccess.createCategory("grp_birthday", {
+        name: "Food   &   Drink",
+      }),
+    ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
+  });
 });
