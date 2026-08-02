@@ -37,9 +37,9 @@ export default async function DashboardLayout({
                 size="sm"
                 className="ml-auto gap-1.5"
               >
-                <Link href="/">
+                <Link href="/dashboard">
                   <HomeIcon aria-hidden="true" />
-                  Back to home
+                  Dashboard
                 </Link>
               </Button>
             </header>
