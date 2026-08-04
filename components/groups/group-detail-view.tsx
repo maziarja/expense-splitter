@@ -6,7 +6,8 @@ import { GroupActionsMenu } from "@/components/groups/group/group-actions-menu";
 import { MembersCard } from "@/components/groups/members/members-card";
 import { SettlementHistoryCard } from "@/components/groups/settlement/settlement-history-card";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
-import type { GroupDetail, Member } from "@/lib/data/types";
+import type { ExpenseFilterState } from "@/lib/data/expense-filters";
+import type { Expense, GroupDetail, Member } from "@/lib/data/types";
 import { calculateTotalSpent } from "@/lib/splits/balance";
 
 export function GroupDetailView({
@@ -14,11 +15,15 @@ export function GroupDetailView({
   groupId,
   basePath,
   you,
+  filters,
+  filteredExpenses,
 }: {
   group: GroupDetail;
   groupId: string;
   basePath: string;
   you: Member | undefined;
+  filters: ExpenseFilterState;
+  filteredExpenses: Expense[];
 }) {
   const activeMembers = group.members.filter((m) => !m.deletedAt);
   const membersById = new Map(group.members.map((m) => [m.id, m] as const));
@@ -95,11 +100,12 @@ export function GroupDetailView({
 
         <RecentExpensesCard
           groupId={groupId}
-          expenses={group.expenses}
+          expenses={filteredExpenses}
           membersById={membersById}
           activeMembers={activeMembers}
           groupCurrency={group.currency}
           categories={group.categories}
+          filters={filters}
           defaultPayerId={you?.id}
         />
 

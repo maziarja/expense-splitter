@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { AddExpensePanel } from "@/components/groups/expense/add-expense-panel";
+import { ExpenseFilters } from "@/components/groups/expense/expense-filters";
 import { ExpenseListItem } from "@/components/groups/expense/expense-list-item";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  hasActiveFilters,
+  type ExpenseFilterState,
+} from "@/lib/data/expense-filters";
 import type { Category, Expense, Member } from "@/lib/data/types";
 import type { CurrencyCode } from "@/lib/splits/constants";
 
@@ -24,6 +29,7 @@ export function RecentExpensesCard({
   activeMembers,
   groupCurrency,
   categories,
+  filters,
   defaultPayerId,
 }: {
   groupId: string;
@@ -32,6 +38,7 @@ export function RecentExpensesCard({
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
   categories: Category[];
+  filters: ExpenseFilterState;
   defaultPayerId?: string;
 }) {
   const sorted = useMemo(
@@ -59,7 +66,17 @@ export function RecentExpensesCard({
           categories={categories}
           defaultPayerId={defaultPayerId}
         />
-        {sorted.length === 0 ? (
+        <ExpenseFilters
+          filters={filters}
+          activeMembers={activeMembers}
+          categories={categories}
+          membersById={membersById}
+        />
+        {sorted.length === 0 && hasActiveFilters(filters) ? (
+          <p className="text-xs text-text-tertiary md:text-sm">
+            No expenses match your filters.
+          </p>
+        ) : sorted.length === 0 ? (
           <p className="text-xs text-text-tertiary md:text-sm">
             No expenses yet.
           </p>
