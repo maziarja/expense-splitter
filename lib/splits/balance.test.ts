@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import sampleData from "../../data/sample-groups.json";
-import { calculateBalances, calculateTotalSpent } from "./balance";
+import {
+  calculateBalances,
+  calculateCategoryBreakdown,
+  calculateTotalSpent,
+} from "./balance";
 import type { CurrencyCode } from "./constants";
 
 function expensesForGroup(group: (typeof sampleData.groups)[number]) {
@@ -186,5 +190,91 @@ describe("calculateTotalSpent", () => {
       "USD",
     );
     expect(total).toBe(59.09);
+  });
+});
+
+describe("calculateCategoryBreakdown", () => {
+  it("returns an empty array for an empty expense list", () => {
+    expect(calculateCategoryBreakdown([], "USD")).toEqual([]);
+  });
+
+  it("groups by category, sums totals, and computes percentages of the whole", () => {
+    const result = calculateCategoryBreakdown(
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Food & Drink",
+          splits: [{ memberId: "a", amount: 30 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Food & Drink",
+          splits: [{ memberId: "a", amount: 20 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Transport",
+          splits: [{ memberId: "a", amount: 50 }],
+        },
+      ],
+      "USD",
+    );
+    expect(result).toEqual([
+      { category: "Food & Drink", total: 50, percentage: 50 },
+      { category: "Transport", total: 50, percentage: 50 },
+    ]);
+  });
+
+  it("sorts entries by total, descending", () => {
+    const result = calculateCategoryBreakdown(
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Small",
+          splits: [{ memberId: "a", amount: 10 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Big",
+          splits: [{ memberId: "a", amount: 90 }],
+        },
+      ],
+      "USD",
+    );
+    expect(result.map((r) => r.category)).toEqual(["Big", "Small"]);
+  });
+
+  it("entries sum back to exactly what calculateTotalSpent reports for the same list", () => {
+    const group = sampleData.groups.find((g) => g.name === "Trip to Japan")!;
+    const expenses = group.expenses.map((e) => ({
+      paidBy: e.paidBy,
+      currency: e.currency as CurrencyCode,
+      exchangeRate: e.exchangeRate,
+      category: e.category,
+      splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
+    }));
+    const breakdown = calculateCategoryBreakdown(
+      expenses,
+      group.currency as CurrencyCode,
+    );
+    const breakdownTotal = breakdown.reduce(
+      (sum, entry) => sum + entry.total,
+      0,
+    );
+    const total = calculateTotalSpent(
+      expensesForGroup(group),
+      group.currency as CurrencyCode,
+    );
+    expect(breakdownTotal).toBeCloseTo(total, 2);
   });
 });

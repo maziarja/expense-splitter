@@ -96,6 +96,41 @@ export function calculateTotalSpent(
   return fromMinorUnits(totalMinorUnits, groupCurrency);
 }
 
+export type CategoryBreakdownEntry = {
+  category: string;
+  total: number;
+  percentage: number;
+};
+
+export function calculateCategoryBreakdown(
+  expenses: (ExpenseForBalance & { category: string })[],
+  groupCurrency: CurrencyCode,
+): CategoryBreakdownEntry[] {
+  const minorUnitsByCategory = new Map<string, number>();
+  let totalMinorUnits = 0;
+  for (const expense of expenses) {
+    const expenseMinorUnits = expense.splits.reduce(
+      (splitSum, split) =>
+        splitSum +
+        convertedMinorUnits(split.amount, expense.exchangeRate, groupCurrency),
+      0,
+    );
+    minorUnitsByCategory.set(
+      expense.category,
+      (minorUnitsByCategory.get(expense.category) ?? 0) + expenseMinorUnits,
+    );
+    totalMinorUnits += expenseMinorUnits;
+  }
+  return Array.from(minorUnitsByCategory.entries())
+    .map(([category, minorUnits]) => ({
+      category,
+      total: fromMinorUnits(minorUnits, groupCurrency),
+      percentage:
+        totalMinorUnits === 0 ? 0 : (minorUnits / totalMinorUnits) * 100,
+    }))
+    .sort((a, b) => b.total - a.total);
+}
+
 export function calculateBalances({
   memberIds,
   expenses,
