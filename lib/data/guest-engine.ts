@@ -294,7 +294,12 @@ export function createCategory(
       "CATEGORY_NAME_TAKEN",
     );
   }
-  const category: Category = { id: generateId(), groupId, name };
+  const category: Category = {
+    id: generateId(),
+    groupId,
+    name,
+    color: input.color,
+  };
   const updated: GuestGroup = {
     ...group,
     categories: [...existingCategories, category],

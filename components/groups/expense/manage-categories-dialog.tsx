@@ -24,8 +24,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { pickCategoryColor } from "@/lib/data/category-color";
 import { DataAccessError } from "@/lib/data/data-access";
 import {
   useDataAccessContext,
@@ -36,6 +42,9 @@ import {
   normalizeCategoryName,
   PREDEFINED_CATEGORIES,
 } from "@/lib/splits/constants";
+import { AVATAR_COLOR_PALETTE } from "@/lib/data/avatar-color";
+import { CategoryIcon } from "@/components/groups/expense/category-icon";
+import { cn } from "@/lib/utils";
 
 function CategoryListRow({
   groupId,
@@ -76,7 +85,10 @@ function CategoryListRow({
 
   return (
     <li className="flex items-center justify-between gap-2 py-1">
-      <span className="text-sm text-text-primary">{category.name}</span>
+      <span className="flex items-center gap-2 text-sm text-text-primary">
+        <CategoryIcon category={category.name} color={category.color} />
+        {category.name}
+      </span>
       <AlertDialog
         open={open}
         onOpenChange={(next) => {
@@ -141,6 +153,9 @@ export function ManageCategoriesDialog({
   const refresh = useDataAccessRefresh();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [color, setColor] = useState(() =>
+    pickCategoryColor(categories.map((c) => c.color)),
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -167,6 +182,7 @@ export function ManageCategoriesDialog({
     try {
       const category = await dataAccess.createCategory(groupId, {
         name: normalized,
+        color,
       });
       onCreated(category);
       refresh();
@@ -193,6 +209,7 @@ export function ManageCategoriesDialog({
         setOpen(next);
         if (next) {
           setName("");
+          setColor(pickCategoryColor(categories.map((c) => c.color)));
           setError(null);
         }
       }}
@@ -224,21 +241,44 @@ export function ManageCategoriesDialog({
             void onSubmit();
           }}
         >
-          <Field data-invalid={!!error}>
-            <FieldLabel htmlFor="new-category-name">Name</FieldLabel>
-            <Input
-              id="new-category-name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setError(null);
-              }}
-              placeholder="Pet supplies"
-              aria-invalid={!!error}
-              autoFocus
-            />
-            {error && <FieldError>{error}</FieldError>}
-          </Field>
+          <FieldGroup>
+            <Field data-invalid={!!error}>
+              <FieldLabel htmlFor="new-category-name">Name</FieldLabel>
+              <Input
+                id="new-category-name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError(null);
+                }}
+                placeholder="Pet supplies"
+                aria-invalid={!!error}
+                autoFocus
+              />
+              {error && <FieldError>{error}</FieldError>}
+            </Field>
+            <Field>
+              <FieldLabel>Color</FieldLabel>
+              <div className="flex flex-wrap gap-2">
+                {AVATAR_COLOR_PALETTE.map((swatch) => (
+                  <button
+                    key={swatch}
+                    type="button"
+                    aria-label={`Choose color ${swatch}`}
+                    aria-pressed={color === swatch}
+                    onClick={() => setColor(swatch)}
+                    className={cn(
+                      "size-7 rounded-full transition",
+                      color === swatch
+                        ? "ring-2 ring-ring ring-offset-2 ring-offset-popover"
+                        : "hover:scale-110",
+                    )}
+                    style={{ backgroundColor: swatch }}
+                  />
+                ))}
+              </div>
+            </Field>
+          </FieldGroup>
         </form>
         {categories.length > 0 && (
           <div className="flex flex-col gap-1">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CategoryIcon } from "@/components/groups/expense/category-icon";
 import { ManageCategoriesDialog } from "@/components/groups/expense/manage-categories-dialog";
 import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
 import { Button } from "@/components/ui/button";
@@ -218,13 +219,19 @@ export function AddExpenseForm({
                 <SelectContent>
                   {PREDEFINED_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
-                      {c}
+                      <span className="flex items-center gap-2">
+                        <CategoryIcon category={c} />
+                        {c}
+                      </span>
                     </SelectItem>
                   ))}
                   {allCategories.length > 0 && <SelectSeparator />}
                   {allCategories.map((c) => (
                     <SelectItem key={c.id} value={c.name}>
-                      {c.name}
+                      <span className="flex items-center gap-2">
+                        <CategoryIcon category={c.name} color={c.color} />
+                        {c.name}
+                      </span>
                     </SelectItem>
                   ))}
                   {/* Safety net for a genuinely orphaned value only (e.g.
@@ -236,7 +243,12 @@ export function AddExpenseForm({
                       category,
                     ) &&
                     !allCategories.some((c) => c.name === category) && (
-                      <SelectItem value={category}>{category}</SelectItem>
+                      <SelectItem value={category}>
+                        <span className="flex items-center gap-2">
+                          <CategoryIcon category={category} />
+                          {category}
+                        </span>
+                      </SelectItem>
                     )}
                 </SelectContent>
               </Select>

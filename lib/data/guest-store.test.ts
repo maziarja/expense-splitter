@@ -124,6 +124,7 @@ describe("guestDataAccess", () => {
   it("creates a custom category and lists it on the group", async () => {
     const category = await guestDataAccess.createCategory("grp_birthday", {
       name: "Party Supplies",
+      color: "#6366F1",
     });
     expect(category.name).toBe("Party Supplies");
 
@@ -133,17 +134,22 @@ describe("guestDataAccess", () => {
 
   it("rejects a custom category name that collides with a predefined one, case-insensitively", async () => {
     await expect(
-      guestDataAccess.createCategory("grp_birthday", { name: "food & drink" }),
+      guestDataAccess.createCategory("grp_birthday", {
+        name: "food & drink",
+        color: "#6366F1",
+      }),
     ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
   });
 
   it("rejects a custom category name that collides with an existing custom one", async () => {
     await guestDataAccess.createCategory("grp_birthday", {
       name: "Party Supplies",
+      color: "#6366F1",
     });
     await expect(
       guestDataAccess.createCategory("grp_birthday", {
         name: "party supplies",
+        color: "#6366F1",
       }),
     ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
   });
@@ -151,10 +157,12 @@ describe("guestDataAccess", () => {
   it("normalizes internal whitespace so spacing variants collide as duplicates", async () => {
     await guestDataAccess.createCategory("grp_birthday", {
       name: "Party   Supplies",
+      color: "#6366F1",
     });
     await expect(
       guestDataAccess.createCategory("grp_birthday", {
         name: "party    supplies",
+        color: "#6366F1",
       }),
     ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
 
@@ -166,6 +174,7 @@ describe("guestDataAccess", () => {
     await expect(
       guestDataAccess.createCategory("grp_birthday", {
         name: "Food   &   Drink",
+        color: "#6366F1",
       }),
     ).rejects.toMatchObject({ code: "CATEGORY_NAME_TAKEN" });
   });
@@ -173,6 +182,7 @@ describe("guestDataAccess", () => {
   it("deletes a custom category", async () => {
     const category = await guestDataAccess.createCategory("grp_birthday", {
       name: "Party Supplies",
+      color: "#6366F1",
     });
     await guestDataAccess.deleteCategory("grp_birthday", category.id);
 

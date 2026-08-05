@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CategoryIcon } from "@/components/groups/expense/category-icon";
 import {
   filtersToQueryString,
   hasActiveFilters,
@@ -84,18 +85,27 @@ export function ExpenseFilters({
             <SelectSeparator />
             {PREDEFINED_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
-                {c}
+                <span className="flex items-center gap-2">
+                  <CategoryIcon category={c} />
+                  {c}
+                </span>
               </SelectItem>
             ))}
             {categories.length > 0 && <SelectSeparator />}
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.name}>
-                {c.name}
+                <span className="flex items-center gap-2">
+                  <CategoryIcon category={c.name} color={c.color} />
+                  {c.name}
+                </span>
               </SelectItem>
             ))}
             {!categoryKnown && filters.category && (
               <SelectItem value={filters.category}>
-                {filters.category}
+                <span className="flex items-center gap-2">
+                  <CategoryIcon category={filters.category} />
+                  {filters.category}
+                </span>
               </SelectItem>
             )}
           </SelectContent>

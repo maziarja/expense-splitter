@@ -37,6 +37,7 @@ export type Category = {
   id: string;
   groupId: string;
   name: string;
+  color: string;
 };
 
 export type GroupDetail = Group & {
@@ -79,4 +80,5 @@ export type CreateSettlementInput = Omit<Settlement, "id">;
 
 export type CreateCategoryInput = {
   name: string;
+  color: string;
 };

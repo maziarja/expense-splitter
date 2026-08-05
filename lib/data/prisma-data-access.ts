@@ -173,8 +173,9 @@ function toCategory(row: {
   id: string;
   groupId: string;
   name: string;
+  color: string;
 }): Category {
-  return { id: row.id, groupId: row.groupId, name: row.name };
+  return { id: row.id, groupId: row.groupId, name: row.name, color: row.color };
 }
 
 function toGroup(row: {
@@ -641,7 +642,7 @@ export const prismaDataAccess: DataAccess = {
       );
     }
     const category = await prisma.category.create({
-      data: { group: { connect: { id: groupId } }, name },
+      data: { group: { connect: { id: groupId } }, name, color: input.color },
     });
     return toCategory(category);
   },

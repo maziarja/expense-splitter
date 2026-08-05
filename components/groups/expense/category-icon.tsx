@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { PREDEFINED_CATEGORY_COLORS } from "@/lib/splits/constants";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -27,15 +28,27 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 export function CategoryIcon({
   category,
+  color,
   className,
 }: {
   category: string;
+  color?: string;
   className?: string;
 }) {
   const Icon = CATEGORY_ICONS[category] ?? TagIcon;
+  const resolvedColor =
+    color ??
+    PREDEFINED_CATEGORY_COLORS[
+      category as keyof typeof PREDEFINED_CATEGORY_COLORS
+    ];
   return (
     <Icon
-      className={cn("size-3.5 text-text-tertiary", className)}
+      className={cn(
+        "size-3.5",
+        !resolvedColor && "text-text-tertiary",
+        className,
+      )}
+      style={resolvedColor ? { color: resolvedColor } : undefined}
       aria-hidden="true"
     />
   );

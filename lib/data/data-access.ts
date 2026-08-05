@@ -57,6 +57,7 @@ export const createSettlementInputSchema = z
 
 export const createCategoryInputSchema = z.object({
   name: z.string().min(1, "Category name is required"),
+  color: z.string().min(1),
 });
 
 export type DataAccessErrorCode =

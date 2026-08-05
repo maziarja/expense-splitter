@@ -120,6 +120,7 @@ export function GroupDetailView({
 
         <CategoryBreakdownCard
           expenses={breakdownExpenses}
+          categories={group.categories}
           groupCurrency={group.currency}
         />
 

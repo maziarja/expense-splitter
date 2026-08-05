@@ -52,6 +52,9 @@ export function ExpenseListItem({
   const [isExpanded, setIsExpanded] = useState(false);
   const expenseDate = new Date(expense.date);
   const splitTypeLabel = SPLIT_TYPE_LABELS[expense.splitType];
+  const categoryColor = categories.find(
+    (c) => c.name === expense.category,
+  )?.color;
 
   const editForm = (
     <AddExpenseForm
@@ -161,7 +164,11 @@ export function ExpenseListItem({
       <div className="flex items-center gap-4">
         {chevronButton}
         <span title={expense.category} className="shrink-0">
-          <CategoryIcon category={expense.category} className="size-5" />
+          <CategoryIcon
+            category={expense.category}
+            color={categoryColor}
+            className="size-5"
+          />
           <span className="sr-only">{expense.category}</span>
         </span>
         <div className="min-w-0 flex-1">
