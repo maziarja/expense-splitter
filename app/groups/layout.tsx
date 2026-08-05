@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import { CreateGroupDialog } from "@/components/groups/group/create-group-dialog";
 import { GroupSidebar } from "@/components/groups/group-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   SidebarInset,
@@ -49,6 +50,7 @@ export default function GroupsLayout({
                   Back to home
                 </Link>
               </Button>
+              <ThemeToggle />
             </header>
             {children}
           </SidebarInset>

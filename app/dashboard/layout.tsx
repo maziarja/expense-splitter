@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DashboardDataProvider } from "@/components/dashboard/dashboard-data-provider";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { CreateGroupDialog } from "@/components/groups/group/create-group-dialog";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   SidebarInset,
@@ -42,6 +43,7 @@ export default async function DashboardLayout({
                   Dashboard
                 </Link>
               </Button>
+              <ThemeToggle />
             </header>
             {children}
           </SidebarInset>
