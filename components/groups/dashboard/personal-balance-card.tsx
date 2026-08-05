@@ -64,7 +64,12 @@ function PersonalBalanceRow({
         type="button"
         variant="outline"
         size="sm"
-        className="w-full"
+        className={cn(
+          "w-full bg-transparent dark:bg-transparent",
+          youAreOwed
+            ? "border-owed-strong text-owed-strong hover:bg-owed-strong/10 hover:text-owed-strong dark:border-owed-strong dark:hover:bg-owed-strong/15"
+            : "border-owe-strong text-owe-strong hover:bg-owe-strong/10 hover:text-owe-strong dark:border-owe-strong dark:hover:bg-owe-strong/15",
+        )}
         onClick={() => setIsSettling(true)}
       >
         Settle up
