@@ -117,12 +117,18 @@ export function AddMemberDialog({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    Name{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
                     {...field}
                     id={field.name}
                     placeholder="Jamie Lee"
                     aria-invalid={fieldState.invalid}
+                    aria-required="true"
                     autoFocus
                   />
                   {fieldState.invalid && (

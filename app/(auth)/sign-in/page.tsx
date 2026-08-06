@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 
+export const metadata: Metadata = { title: "Sign in - Expense Splitter" };
+
 export default async function SignInPage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -22,7 +25,9 @@ export default async function SignInPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Sign in</CardTitle>
+        <CardTitle className="text-base" asChild>
+          <h1>Sign in</h1>
+        </CardTitle>
         <CardDescription>Welcome back to Expense Splitter.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -11,7 +11,10 @@ export default function AuthLayout({
       className="flex flex-1 items-center justify-center bg-bg-primary p-8"
     >
       <div className="w-full max-w-sm">
-        <Link href="/" className="mb-4 inline-block text-xs text-text-tertiary">
+        <Link
+          href="/"
+          className="mb-4 inline-block text-xs text-text-tertiary underline underline-offset-4"
+        >
           ← Back home
         </Link>
         {children}

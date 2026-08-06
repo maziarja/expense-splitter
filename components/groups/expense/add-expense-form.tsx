@@ -117,7 +117,12 @@ export function AddExpenseForm({
     >
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="expense-amount">Amount</FieldLabel>
+          <FieldLabel htmlFor="expense-amount">
+            Amount{" "}
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          </FieldLabel>
           <div className="flex gap-2">
             <Input
               id="expense-amount"
@@ -126,6 +131,7 @@ export function AddExpenseForm({
               value={amountInput}
               onChange={(e) => onAmountInputChange(e.target.value)}
               aria-invalid={touched && !hasValidAmount}
+              aria-required="true"
               autoFocus
               className="font-mono text-base font-semibold"
             />
@@ -174,13 +180,19 @@ export function AddExpenseForm({
         )}
 
         <Field>
-          <FieldLabel htmlFor="expense-description">Description</FieldLabel>
+          <FieldLabel htmlFor="expense-description">
+            Description{" "}
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          </FieldLabel>
           <Input
             id="expense-description"
             placeholder="Dinner at..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             aria-invalid={touched && !description.trim()}
+            aria-required="true"
           />
           {touched && !description.trim() && (
             <FieldError>Description is required.</FieldError>

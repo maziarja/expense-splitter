@@ -139,7 +139,7 @@ export function ExpenseListItem({
           </div>
           <div className="mt-1 flex items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary">
-              <Avatar size="sm" className="shrink-0">
+              <Avatar size="sm" className="shrink-0" aria-hidden="true">
                 <AvatarFallback
                   className="text-white"
                   style={{ backgroundColor: payer?.avatarColor }}
@@ -189,7 +189,7 @@ export function ExpenseListItem({
             {expense.description}
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-text-tertiary">
-            <Avatar size="sm">
+            <Avatar size="sm" aria-hidden="true">
               <AvatarFallback
                 className="text-white"
                 style={{ backgroundColor: payer?.avatarColor }}

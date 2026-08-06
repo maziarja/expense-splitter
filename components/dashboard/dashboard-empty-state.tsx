@@ -8,7 +8,7 @@ import { useCreateGroupDialogStore } from "@/lib/data/create-group-dialog-store"
 export function DashboardEmptyState() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
-      <p className="text-sm font-semibold text-text-primary">No groups yet</p>
+      <h1 className="text-sm font-semibold text-text-primary">No groups yet</h1>
       <p className="text-xs text-text-secondary md:text-sm">
         Create a group to start splitting expenses.
       </p>

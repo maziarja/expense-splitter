@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
@@ -9,11 +10,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+export const metadata: Metadata = {
+  title: "Reset your password - Expense Splitter",
+};
+
 export default function ForgotPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Reset your password</CardTitle>
+        <CardTitle className="text-base" asChild>
+          <h1>Reset your password</h1>
+        </CardTitle>
         <CardDescription>
           We&apos;ll email you a link to set a new one.
         </CardDescription>

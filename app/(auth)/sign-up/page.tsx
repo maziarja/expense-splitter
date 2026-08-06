@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 
+export const metadata: Metadata = { title: "Sign up - Expense Splitter" };
+
 export default async function SignUpPage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -22,7 +25,9 @@ export default async function SignUpPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Create your account</CardTitle>
+        <CardTitle className="text-base" asChild>
+          <h1>Create your account</h1>
+        </CardTitle>
         <CardDescription>
           Save your groups and expenses beyond a single session.
         </CardDescription>

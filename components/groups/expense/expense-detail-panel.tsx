@@ -32,7 +32,7 @@ export function ExpenseDetailPanel({
                 className="flex items-center justify-between gap-2"
               >
                 <span className="flex items-center gap-1.5">
-                  <Avatar size="sm">
+                  <Avatar size="sm" aria-hidden="true">
                     <AvatarFallback
                       className="text-white"
                       style={{ backgroundColor: member?.avatarColor }}

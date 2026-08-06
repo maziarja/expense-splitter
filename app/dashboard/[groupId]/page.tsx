@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { GroupDetailView } from "@/components/groups/group-detail-view";
@@ -7,6 +8,16 @@ import {
   filtersFromSearchParams,
 } from "@/lib/data/expense-filters";
 import { prismaDataAccess } from "@/lib/data/prisma-data-access";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ groupId: string }>;
+}): Promise<Metadata> {
+  const { groupId } = await params;
+  const group = await prismaDataAccess.getGroup(groupId);
+  return { title: group ? `${group.name} - Expense Splitter` : undefined };
+}
 
 export default async function DashboardGroupPage({
   params,

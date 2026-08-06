@@ -87,12 +87,18 @@ export function CreateGroupDialog({ basePath }: { basePath: string }) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Group name</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    Group name{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
                     {...field}
                     id={field.name}
                     placeholder="Trip to Japan"
                     aria-invalid={fieldState.invalid}
+                    aria-required="true"
                     autoFocus
                   />
                   {fieldState.invalid && (

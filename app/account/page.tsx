@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -12,6 +13,10 @@ import {
 } from "@/components/ui/card";
 import { requireAuth } from "@/lib/auth";
 import { getUserPreference } from "@/lib/data/user-preferences";
+
+export const metadata: Metadata = {
+  title: "Preferences - Expense Splitter",
+};
 
 export default async function AccountPage() {
   const session = await requireAuth();
@@ -31,7 +36,9 @@ export default async function AccountPage() {
         </Button>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Preferences</CardTitle>
+            <CardTitle className="text-base" asChild>
+              <h1>Preferences</h1>
+            </CardTitle>
             <CardDescription>
               Defaults applied across your account.
             </CardDescription>

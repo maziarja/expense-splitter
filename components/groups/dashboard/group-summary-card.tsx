@@ -63,7 +63,7 @@ export function GroupSummaryCard({
                 className="flex items-center justify-between gap-3"
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <Avatar>
+                  <Avatar aria-hidden="true">
                     <AvatarFallback
                       className="text-white"
                       style={{ backgroundColor: member.avatarColor }}
