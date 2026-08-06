@@ -44,6 +44,7 @@ function SettlementSuggestionRow({
           variant="ghost"
           size="sm"
           onClick={() => setIsSettling(true)}
+          aria-label={`Settle up: ${fromName} owes ${toName} ${formatCurrency(suggestion.amount, currency)}`}
         >
           Settle up
         </Button>

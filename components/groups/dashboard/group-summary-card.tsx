@@ -7,6 +7,20 @@ import type { MemberBalance } from "@/lib/splits/balance";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency } from "@/lib/splits/currency";
 
+function memberBalanceAriaLabel(
+  memberName: string,
+  balance: MemberBalance | null,
+  currency: CurrencyCode,
+): string {
+  if (!balance || balance.isSettled) {
+    return `${memberName} is settled up`;
+  }
+  const amount = formatCurrency(Math.abs(balance.netBalance), currency);
+  return balance.netBalance > 0
+    ? `${memberName} is owed ${amount}`
+    : `${memberName} owes ${amount}`;
+}
+
 export function GroupSummaryCard({
   members,
   memberBalances,
@@ -64,7 +78,15 @@ export function GroupSummaryCard({
                     )}
                   </span>
                 </span>
-                <GroupBalanceBadge balance={balance} currency={currency} />
+                <GroupBalanceBadge
+                  balance={balance}
+                  currency={currency}
+                  ariaLabel={memberBalanceAriaLabel(
+                    member.name,
+                    balance,
+                    currency,
+                  )}
+                />
               </li>
             );
           })}

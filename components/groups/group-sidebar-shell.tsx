@@ -29,6 +29,20 @@ import {
 } from "@/components/ui/tooltip";
 import { useCreateGroupDialogStore } from "@/lib/data/create-group-dialog-store";
 import type { GroupSummary } from "@/lib/data/types";
+import { formatCurrency } from "@/lib/splits/currency";
+
+function yourBalanceAriaLabel(group: GroupSummary): string {
+  if (!group.yourBalance || group.yourBalance.isSettled) {
+    return `You're settled up in ${group.name}`;
+  }
+  const amount = formatCurrency(
+    Math.abs(group.yourBalance.netBalance),
+    group.currency,
+  );
+  return group.yourBalance.netBalance > 0
+    ? `You are owed ${amount} in ${group.name}`
+    : `You owe ${amount} in ${group.name}`;
+}
 
 export function GroupSidebarShell({
   groups,
@@ -112,6 +126,7 @@ export function GroupSidebarShell({
                               <GroupBalanceBadge
                                 balance={group.yourBalance}
                                 currency={group.currency}
+                                ariaLabel={yourBalanceAriaLabel(group)}
                               />
                             </span>
                           </Link>

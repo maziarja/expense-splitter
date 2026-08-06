@@ -63,7 +63,7 @@ export function GroupDetailView({
             </div>
             <AvatarGroup>
               {activeMembers.map((member) => (
-                <Avatar key={member.id}>
+                <Avatar key={member.id} role="img" aria-label={member.name}>
                   <AvatarFallback
                     className="text-white"
                     style={{ backgroundColor: member.avatarColor }}

@@ -71,6 +71,11 @@ function PersonalBalanceRow({
             : "border-owe-strong text-owe-strong hover:bg-owe-strong/10 hover:text-owe-strong dark:border-owe-strong dark:hover:bg-owe-strong/15",
         )}
         onClick={() => setIsSettling(true)}
+        aria-label={`Settle up: ${
+          youAreOwed
+            ? `${otherName} owes you ${formatCurrency(suggestion.amount, currency)}`
+            : `you owe ${otherName} ${formatCurrency(suggestion.amount, currency)}`
+        }`}
       >
         Settle up
       </Button>

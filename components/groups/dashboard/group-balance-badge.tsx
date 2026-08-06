@@ -8,13 +8,18 @@ import { cn } from "@/lib/utils";
 export function GroupBalanceBadge({
   balance,
   currency,
+  ariaLabel,
 }: {
   balance: MemberBalance | null;
   currency: CurrencyCode;
+  ariaLabel: string;
 }) {
   if (!balance || balance.isSettled) {
     return (
-      <span className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
+      <span
+        aria-label={ariaLabel}
+        className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary"
+      >
         <CheckIcon className="size-3" aria-hidden="true" />
         Settled
       </span>
@@ -26,6 +31,7 @@ export function GroupBalanceBadge({
 
   return (
     <span
+      aria-label={ariaLabel}
       className={cn(
         "flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-xs tabular-nums",
         isOwed
