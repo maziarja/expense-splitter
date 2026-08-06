@@ -1,5 +1,6 @@
 "use client";
 
+import { FilterIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AddExpensePanel } from "@/components/groups/expense/add-expense-panel";
@@ -51,6 +52,10 @@ export function RecentExpensesCard({
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? sorted : sorted.slice(0, VISIBLE_COUNT);
 
+  const [filtersOpen, setFiltersOpen] = useState(() =>
+    hasActiveFilters(filters),
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -66,12 +71,31 @@ export function RecentExpensesCard({
           categories={categories}
           defaultPayerId={defaultPayerId}
         />
-        <ExpenseFilters
-          filters={filters}
-          activeMembers={activeMembers}
-          categories={categories}
-          membersById={membersById}
-        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-fit"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((v) => !v)}
+        >
+          <FilterIcon aria-hidden="true" />
+          Filters
+          {hasActiveFilters(filters) && (
+            <span
+              aria-hidden="true"
+              className="size-1.5 rounded-full bg-accent"
+            />
+          )}
+        </Button>
+        {filtersOpen && (
+          <ExpenseFilters
+            filters={filters}
+            activeMembers={activeMembers}
+            categories={categories}
+            membersById={membersById}
+          />
+        )}
         {sorted.length === 0 && hasActiveFilters(filters) ? (
           <p className="text-xs text-text-tertiary md:text-sm">
             No expenses match your filters.

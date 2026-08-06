@@ -1,3 +1,13 @@
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  differenceInCalendarDays,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
+
 import type { CurrencyCode } from "./constants";
 import {
   fromMinorUnits,
@@ -129,6 +139,114 @@ export function calculateCategoryBreakdown(
         totalMinorUnits === 0 ? 0 : (minorUnits / totalMinorUnits) * 100,
     }))
     .sort((a, b) => b.total - a.total);
+}
+
+export type SpendingGranularity = "day" | "week" | "month";
+
+export type SpendingOverTimeEntry = {
+  bucketStart: string; // ISO 8601, start of the bucket's day/week/month
+  total: number; // in groupCurrency
+};
+
+function startOfBucket(date: Date, granularity: SpendingGranularity): Date {
+  switch (granularity) {
+    case "day":
+      return startOfDay(date);
+    case "week":
+      // weekStartsOn defaults to Sunday (date-fns' own default), matching
+      // the rest of this app's lack of a locale/week-start preference
+      // anywhere else.
+      return startOfWeek(date);
+    case "month":
+      return startOfMonth(date);
+  }
+}
+
+function nextBucket(date: Date, granularity: SpendingGranularity): Date {
+  switch (granularity) {
+    case "day":
+      return addDays(date, 1);
+    case "week":
+      return addWeeks(date, 1);
+    case "month":
+      return addMonths(date, 1);
+  }
+}
+
+// Buckets each expense's converted, per-split total (same convertedMinorUnits
+// path as calculateTotalSpent/calculateCategoryBreakdown, so this never
+// drifts from those figures by a cent) into day/week/month buckets. Zero-fills
+// every bucket across the continuous range from the earliest to the latest
+// expense — not just buckets that happen to contain an expense — so a chart
+// built on this shows genuine dips to zero rather than a line connecting
+// sparse points across a gap.
+export function calculateSpendingOverTime(
+  expenses: (ExpenseForBalance & { date: string })[],
+  groupCurrency: CurrencyCode,
+  granularity: SpendingGranularity,
+): SpendingOverTimeEntry[] {
+  if (expenses.length === 0) return [];
+
+  const minorUnitsByBucket = new Map<string, number>();
+  for (const expense of expenses) {
+    const bucketStart = startOfBucket(
+      new Date(expense.date),
+      granularity,
+    ).toISOString();
+    const expenseMinorUnits = expense.splits.reduce(
+      (splitSum, split) =>
+        splitSum +
+        convertedMinorUnits(split.amount, expense.exchangeRate, groupCurrency),
+      0,
+    );
+    minorUnitsByBucket.set(
+      bucketStart,
+      (minorUnitsByBucket.get(bucketStart) ?? 0) + expenseMinorUnits,
+    );
+  }
+
+  const sortedDates = expenses
+    .map((e) => new Date(e.date))
+    .sort((a, b) => a.valueOf() - b.valueOf());
+  const firstBucket = startOfBucket(sortedDates[0], granularity);
+  const lastBucket = startOfBucket(
+    sortedDates[sortedDates.length - 1],
+    granularity,
+  );
+
+  const entries: SpendingOverTimeEntry[] = [];
+  for (
+    let cursor = firstBucket;
+    cursor.valueOf() <= lastBucket.valueOf();
+    cursor = nextBucket(cursor, granularity)
+  ) {
+    const key = cursor.toISOString();
+    entries.push({
+      bucketStart: key,
+      total: fromMinorUnits(minorUnitsByBucket.get(key) ?? 0, groupCurrency),
+    });
+  }
+  return entries;
+}
+
+const DAY_GRANULARITY_MAX_SPAN = 14;
+const WEEK_GRANULARITY_MAX_SPAN = 70;
+
+// Auto-picks a sensible default granularity from the expense date range: a
+// short trip reads best day-by-day, a longer-running group by week or month.
+// Still just a default — callers let the user override it.
+export function pickSpendingGranularity(
+  expenses: { date: string }[],
+): SpendingGranularity {
+  if (expenses.length < 2) return "day";
+  const dates = expenses.map((e) => new Date(e.date).valueOf());
+  const spanDays = differenceInCalendarDays(
+    new Date(Math.max(...dates)),
+    new Date(Math.min(...dates)),
+  );
+  if (spanDays <= DAY_GRANULARITY_MAX_SPAN) return "day";
+  if (spanDays <= WEEK_GRANULARITY_MAX_SPAN) return "week";
+  return "month";
 }
 
 export function calculateBalances({

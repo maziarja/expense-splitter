@@ -3,6 +3,7 @@ import { PersonalBalanceCard } from "@/components/groups/dashboard/personal-bala
 import { SettlementSuggestionsCard } from "@/components/groups/dashboard/settlement-suggestions-card";
 import { CategoryBreakdownCard } from "@/components/groups/expense/category-breakdown-card";
 import { RecentExpensesCard } from "@/components/groups/expense/recent-expenses-card";
+import { SpendingOverTimeCard } from "@/components/groups/expense/spending-over-time-card";
 import { GroupActionsMenu } from "@/components/groups/group/group-actions-menu";
 import { MembersCard } from "@/components/groups/members/members-card";
 import { SettlementHistoryCard } from "@/components/groups/settlement/settlement-history-card";
@@ -116,6 +117,11 @@ export function GroupDetailView({
           categories={group.categories}
           filters={filters}
           defaultPayerId={you?.id}
+        />
+
+        <SpendingOverTimeCard
+          expenses={filteredExpenses}
+          groupCurrency={group.currency}
         />
 
         <CategoryBreakdownCard

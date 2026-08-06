@@ -3,7 +3,9 @@ import sampleData from "../../data/sample-groups.json";
 import {
   calculateBalances,
   calculateCategoryBreakdown,
+  calculateSpendingOverTime,
   calculateTotalSpent,
+  pickSpendingGranularity,
 } from "./balance";
 import type { CurrencyCode } from "./constants";
 
@@ -12,6 +14,16 @@ function expensesForGroup(group: (typeof sampleData.groups)[number]) {
     paidBy: e.paidBy,
     currency: e.currency as CurrencyCode,
     exchangeRate: e.exchangeRate,
+    splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
+  }));
+}
+
+function expensesForGroupWithDate(group: (typeof sampleData.groups)[number]) {
+  return group.expenses.map((e) => ({
+    paidBy: e.paidBy,
+    currency: e.currency as CurrencyCode,
+    exchangeRate: e.exchangeRate,
+    date: e.date,
     splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
   }));
 }
@@ -276,5 +288,150 @@ describe("calculateCategoryBreakdown", () => {
       group.currency as CurrencyCode,
     );
     expect(breakdownTotal).toBeCloseTo(total, 2);
+  });
+});
+
+describe("calculateSpendingOverTime", () => {
+  it("returns an empty array for an empty expense list", () => {
+    expect(calculateSpendingOverTime([], "USD", "day")).toEqual([]);
+  });
+
+  it("buckets by day and zero-fills a gap day with no expenses", () => {
+    const result = calculateSpendingOverTime(
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          date: "2024-03-01T10:00:00Z",
+          splits: [{ memberId: "a", amount: 30 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          date: "2024-03-03T18:00:00Z",
+          splits: [{ memberId: "a", amount: 20 }],
+        },
+      ],
+      "USD",
+      "day",
+    );
+    expect(result.map((e) => e.total)).toEqual([30, 0, 20]);
+    expect(result).toHaveLength(3);
+  });
+
+  it("sums same-day expenses into one bucket", () => {
+    const result = calculateSpendingOverTime(
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          date: "2024-03-01T08:00:00Z",
+          splits: [{ memberId: "a", amount: 10 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          date: "2024-03-01T20:00:00Z",
+          splits: [{ memberId: "a", amount: 15 }],
+        },
+      ],
+      "USD",
+      "day",
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0].total).toBe(25);
+  });
+
+  it("buckets by month across a multi-month range", () => {
+    const result = calculateSpendingOverTime(
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          date: "2024-01-05T10:00:00Z",
+          splits: [{ memberId: "a", amount: 100 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          date: "2024-03-20T10:00:00Z",
+          splits: [{ memberId: "a", amount: 40 }],
+        },
+      ],
+      "USD",
+      "month",
+    );
+    expect(result.map((e) => e.total)).toEqual([100, 0, 40]);
+  });
+
+  it("entries sum back to exactly what calculateTotalSpent reports for the same list (Trip to Japan, day granularity)", () => {
+    const group = sampleData.groups.find((g) => g.name === "Trip to Japan")!;
+    const expenses = expensesForGroupWithDate(group);
+    const entries = calculateSpendingOverTime(
+      expenses,
+      group.currency as CurrencyCode,
+      "day",
+    );
+    const entriesTotal = entries.reduce((sum, e) => sum + e.total, 0);
+    const total = calculateTotalSpent(
+      expensesForGroup(group),
+      group.currency as CurrencyCode,
+    );
+    expect(entriesTotal).toBeCloseTo(total, 2);
+  });
+
+  it("bucket totals stay currency-aware (JPY, zero-decimal)", () => {
+    const group = sampleData.groups.find((g) => g.name === "Trip to Japan")!;
+    const entries = calculateSpendingOverTime(
+      expensesForGroupWithDate(group),
+      "JPY",
+      "week",
+    );
+    for (const entry of entries) {
+      expect(Number.isInteger(entry.total)).toBe(true);
+    }
+  });
+});
+
+describe("pickSpendingGranularity", () => {
+  it("defaults to day for fewer than 2 expenses", () => {
+    expect(pickSpendingGranularity([])).toBe("day");
+    expect(pickSpendingGranularity([{ date: "2024-03-01T10:00:00Z" }])).toBe(
+      "day",
+    );
+  });
+
+  it("picks day for a short trip (Trip to Japan, ~12 days)", () => {
+    const group = sampleData.groups.find((g) => g.name === "Trip to Japan")!;
+    expect(pickSpendingGranularity(group.expenses)).toBe("day");
+  });
+
+  it("picks week for a longer-running group (Apartment 4B, ~7 weeks)", () => {
+    const group = sampleData.groups.find((g) => g.name === "Apartment 4B")!;
+    expect(pickSpendingGranularity(group.expenses)).toBe("week");
+  });
+
+  it("picks month for a span beyond 70 days", () => {
+    expect(
+      pickSpendingGranularity([
+        { date: "2024-01-01T00:00:00Z" },
+        { date: "2024-06-01T00:00:00Z" },
+      ]),
+    ).toBe("month");
+  });
+
+  it("picks week for a span just past the day threshold", () => {
+    expect(
+      pickSpendingGranularity([
+        { date: "2024-01-01T00:00:00Z" },
+        { date: "2024-01-20T00:00:00Z" },
+      ]),
+    ).toBe("week");
   });
 });
