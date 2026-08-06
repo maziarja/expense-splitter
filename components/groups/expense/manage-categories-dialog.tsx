@@ -84,7 +84,7 @@ function CategoryListRow({
   }
 
   return (
-    <li className="flex items-center justify-between gap-2 py-1">
+    <li className="flex items-center justify-between gap-2 py-3">
       <span className="flex items-center gap-2 text-sm text-text-primary">
         <CategoryIcon category={category.name} color={category.color} />
         {category.name}
