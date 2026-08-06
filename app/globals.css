@@ -110,7 +110,7 @@
   --popover: var(--color-surface);
   --popover-foreground: var(--color-text-primary);
   --primary: var(--color-accent);
-  --primary-foreground: #fff;
+  --primary-foreground: var(--color-accent-contrast);
   --secondary: var(--color-bg-tertiary);
   --secondary-foreground: var(--color-text-primary);
   --muted: var(--color-bg-secondary);
@@ -132,7 +132,7 @@
   --sidebar: var(--color-bg-secondary);
   --sidebar-foreground: var(--color-text-primary);
   --sidebar-primary: var(--color-accent);
-  --sidebar-primary-foreground: #fff;
+  --sidebar-primary-foreground: var(--color-accent-contrast);
   --sidebar-accent: var(--color-accent-subtle);
   --sidebar-accent-foreground: var(--color-text-primary);
   --sidebar-border: var(--color-border);
