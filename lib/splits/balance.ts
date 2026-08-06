@@ -141,6 +141,66 @@ export function calculateCategoryBreakdown(
     .sort((a, b) => b.total - a.total);
 }
 
+export type MemberContributionEntry = {
+  memberId: string;
+  total: number; // in groupCurrency
+  byCategory: Record<string, number>; // category -> amount paid; only categories that member actually paid for
+};
+
+// "Amount paid" credits the expense's *payer* with the full converted total
+// (summed across its own splits, same "sum per-split rather than convert
+// the whole amount" reasoning calculateTotalSpent already uses, so this
+// never drifts from it) — not each split participant's share. Mirrors
+// exactly how calculateBalances credits the payer internally.
+//
+// Only memberIds get an entry, same roster-driven shape as calculateBalances
+// — if a since-removed member historically paid for something, that spend
+// isn't attributed to anyone here. Consistent with every other per-member
+// view in the app (e.g. GroupSummaryCard's balance list), which likewise
+// never resurrects a removed member; it just means this breakdown isn't
+// guaranteed to sum to calculateTotalSpent for a group with removed members.
+export function calculateMemberContribution(
+  memberIds: string[],
+  expenses: (ExpenseForBalance & { category: string })[],
+  groupCurrency: CurrencyCode,
+): MemberContributionEntry[] {
+  const minorUnitsByMember = new Map<string, Map<string, number>>(
+    memberIds.map((id) => [id, new Map<string, number>()]),
+  );
+
+  for (const expense of expenses) {
+    const expenseMinorUnits = expense.splits.reduce(
+      (splitSum, split) =>
+        splitSum +
+        convertedMinorUnits(split.amount, expense.exchangeRate, groupCurrency),
+      0,
+    );
+    if (!minorUnitsByMember.has(expense.paidBy)) {
+      minorUnitsByMember.set(expense.paidBy, new Map<string, number>());
+    }
+    const byCategory = minorUnitsByMember.get(expense.paidBy)!;
+    byCategory.set(
+      expense.category,
+      (byCategory.get(expense.category) ?? 0) + expenseMinorUnits,
+    );
+  }
+
+  return memberIds.map((memberId) => {
+    const byCategoryMinorUnits = minorUnitsByMember.get(memberId) ?? new Map();
+    const byCategory: Record<string, number> = {};
+    let totalMinorUnits = 0;
+    for (const [category, minorUnits] of byCategoryMinorUnits) {
+      byCategory[category] = fromMinorUnits(minorUnits, groupCurrency);
+      totalMinorUnits += minorUnits;
+    }
+    return {
+      memberId,
+      total: fromMinorUnits(totalMinorUnits, groupCurrency),
+      byCategory,
+    };
+  });
+}
+
 export type SpendingGranularity = "day" | "week" | "month";
 
 export type SpendingOverTimeEntry = {

@@ -2,6 +2,7 @@ import { GroupSummaryCard } from "@/components/groups/dashboard/group-summary-ca
 import { PersonalBalanceCard } from "@/components/groups/dashboard/personal-balance-card";
 import { SettlementSuggestionsCard } from "@/components/groups/dashboard/settlement-suggestions-card";
 import { CategoryBreakdownCard } from "@/components/groups/expense/category-breakdown-card";
+import { MemberContributionCard } from "@/components/groups/expense/member-contribution-card";
 import { RecentExpensesCard } from "@/components/groups/expense/recent-expenses-card";
 import { SpendingOverTimeCard } from "@/components/groups/expense/spending-over-time-card";
 import { GroupActionsMenu } from "@/components/groups/group/group-actions-menu";
@@ -38,6 +39,11 @@ export function GroupDetailView({
   const breakdownExpenses = filterExpenses(group.expenses, {
     ...filters,
     category: null,
+  });
+
+  const memberContributionExpenses = filterExpenses(group.expenses, {
+    ...filters,
+    paidBy: null,
   });
 
   return (
@@ -128,6 +134,14 @@ export function GroupDetailView({
           expenses={breakdownExpenses}
           categories={group.categories}
           groupCurrency={group.currency}
+        />
+
+        <MemberContributionCard
+          expenses={memberContributionExpenses}
+          activeMembers={activeMembers}
+          categories={group.categories}
+          groupCurrency={group.currency}
+          youId={you?.id}
         />
 
         <SettlementHistoryCard

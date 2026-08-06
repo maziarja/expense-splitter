@@ -3,6 +3,7 @@ import sampleData from "../../data/sample-groups.json";
 import {
   calculateBalances,
   calculateCategoryBreakdown,
+  calculateMemberContribution,
   calculateSpendingOverTime,
   calculateTotalSpent,
   pickSpendingGranularity,
@@ -433,5 +434,112 @@ describe("pickSpendingGranularity", () => {
         { date: "2024-01-20T00:00:00Z" },
       ]),
     ).toBe("week");
+  });
+});
+
+describe("calculateMemberContribution", () => {
+  it("returns a zero entry per memberId for an empty expense list", () => {
+    const result = calculateMemberContribution(["a", "b"], [], "USD");
+    expect(result).toEqual([
+      { memberId: "a", total: 0, byCategory: {} },
+      { memberId: "b", total: 0, byCategory: {} },
+    ]);
+  });
+
+  it("credits the payer with the full expense total, grouped by category", () => {
+    const result = calculateMemberContribution(
+      ["a", "b"],
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Food & Drink",
+          splits: [
+            { memberId: "a", amount: 20 },
+            { memberId: "b", amount: 20 },
+          ],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Transport",
+          splits: [{ memberId: "a", amount: 10 }],
+        },
+      ],
+      "USD",
+    );
+    expect(result).toEqual([
+      {
+        memberId: "a",
+        total: 50,
+        byCategory: { "Food & Drink": 40, Transport: 10 },
+      },
+      { memberId: "b", total: 0, byCategory: {} },
+    ]);
+  });
+
+  it("a member who paid nothing still gets a zero entry, not omitted", () => {
+    const result = calculateMemberContribution(
+      ["a", "b", "c"],
+      [
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          category: "Other",
+          splits: [{ memberId: "a", amount: 30 }],
+        },
+      ],
+      "USD",
+    );
+    expect(result.find((e) => e.memberId === "c")).toEqual({
+      memberId: "c",
+      total: 0,
+      byCategory: {},
+    });
+  });
+
+  it("each member's byCategory values sum to exactly their total", () => {
+    const group = sampleData.groups.find((g) => g.name === "Camping Weekend")!;
+    const expenses = group.expenses.map((e) => ({
+      paidBy: e.paidBy,
+      currency: e.currency as CurrencyCode,
+      exchangeRate: e.exchangeRate,
+      category: e.category,
+      splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
+    }));
+    const result = calculateMemberContribution(
+      group.members.map((m) => m.id),
+      expenses,
+      group.currency as CurrencyCode,
+    );
+    for (const entry of result) {
+      const sum = Object.values(entry.byCategory).reduce((a, b) => a + b, 0);
+      expect(sum).toBeCloseTo(entry.total, 9);
+    }
+  });
+
+  it("entries sum back to exactly what calculateTotalSpent reports (no removed members in sample data)", () => {
+    const group = sampleData.groups.find((g) => g.name === "Trip to Japan")!;
+    const expenses = group.expenses.map((e) => ({
+      paidBy: e.paidBy,
+      currency: e.currency as CurrencyCode,
+      exchangeRate: e.exchangeRate,
+      category: e.category,
+      splits: e.splits.map((s) => ({ memberId: s.memberId, amount: s.amount })),
+    }));
+    const result = calculateMemberContribution(
+      group.members.map((m) => m.id),
+      expenses,
+      group.currency as CurrencyCode,
+    );
+    const resultTotal = result.reduce((sum, entry) => sum + entry.total, 0);
+    const total = calculateTotalSpent(
+      expensesForGroup(group),
+      group.currency as CurrencyCode,
+    );
+    expect(resultTotal).toBeCloseTo(total, 2);
   });
 });
