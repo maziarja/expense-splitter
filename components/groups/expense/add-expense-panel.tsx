@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PlusIcon } from "lucide-react";
 
 import { AddExpenseForm } from "@/components/groups/expense/add-expense-form";
@@ -31,6 +31,17 @@ export function AddExpensePanel({
 }) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
+
+  // Desktop swaps the trigger button for an inline form (no Dialog/Sheet, so
+  // no automatic focus-restore) — return focus to the trigger on close.
+  useEffect(() => {
+    if (wasOpenRef.current && !open && !isMobile) {
+      triggerRef.current?.focus();
+    }
+    wasOpenRef.current = open;
+  }, [open, isMobile]);
 
   const form = (
     <AddExpenseForm
@@ -68,7 +79,7 @@ export function AddExpensePanel({
 
   if (!open) {
     return (
-      <Button size="sm" onClick={() => setOpen(true)}>
+      <Button ref={triggerRef} size="sm" onClick={() => setOpen(true)}>
         <PlusIcon aria-hidden="true" />
         Add expense
       </Button>

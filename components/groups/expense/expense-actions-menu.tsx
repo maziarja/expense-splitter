@@ -13,14 +13,17 @@ import {
 export function ExpenseActionsMenu({
   onEdit,
   onDelete,
+  triggerRef,
 }: {
   onEdit: () => void;
   onDelete: () => void;
+  triggerRef?: React.Ref<HTMLButtonElement>;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          ref={triggerRef}
           type="button"
           variant="ghost"
           size="icon-sm"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 
@@ -50,6 +50,18 @@ export function ExpenseListItem({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const actionsTriggerRef = useRef<HTMLButtonElement>(null);
+  const wasEditingRef = useRef(false);
+
+  // Desktop swaps the row for an inline form (no Dialog/Sheet, so no
+  // automatic focus-restore) — return focus to the "⋮" trigger on close.
+  useEffect(() => {
+    if (wasEditingRef.current && !isEditing && !isMobile) {
+      actionsTriggerRef.current?.focus();
+    }
+    wasEditingRef.current = isEditing;
+  }, [isEditing, isMobile]);
+
   const expenseDate = new Date(expense.date);
   const splitTypeLabel = SPLIT_TYPE_LABELS[expense.splitType];
   const categoryColor = categories.find(
@@ -90,6 +102,7 @@ export function ExpenseListItem({
 
   const actionsMenu = (
     <ExpenseActionsMenu
+      triggerRef={actionsTriggerRef}
       onEdit={() => setIsEditing(true)}
       onDelete={() => setIsDeleting(true)}
     />

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function GroupNotFound() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-2 p-8">
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8">
       <p className="text-text-secondary">Group not found.</p>
       <Link
         href="/groups"
@@ -10,6 +10,6 @@ export default function GroupNotFound() {
       >
         Back to your groups
       </Link>
-    </main>
+    </div>
   );
 }

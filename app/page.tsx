@@ -4,7 +4,7 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 
 export default function Home() {
   return (
-    <main className="flex-1 bg-bg-primary">
+    <main id="main-content" className="flex-1 bg-bg-primary">
       <Hero />
       <HowItWorks />
       <FeatureHighlights />

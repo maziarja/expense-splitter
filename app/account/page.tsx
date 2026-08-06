@@ -18,7 +18,10 @@ export default async function AccountPage() {
   const preference = await getUserPreference(session.user.id);
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-bg-primary p-8">
+    <main
+      id="main-content"
+      className="flex flex-1 items-center justify-center bg-bg-primary p-8"
+    >
       <div className="w-full max-w-sm space-y-4">
         <Button asChild variant="ghost" size="sm" className="gap-1.5">
           <Link href="/dashboard">
