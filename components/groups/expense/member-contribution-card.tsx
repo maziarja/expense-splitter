@@ -1,12 +1,14 @@
 "use client";
 
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import { useState } from "react";
+import { ChevronDownIcon, ChevronRightIcon, DownloadIcon } from "lucide-react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import {
   MemberContributionChart,
   type MemberContributionRow,
 } from "@/components/groups/expense/member-contribution-chart";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -14,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { exportChartAsImage } from "@/lib/charts/export-chart-image";
 import type { Category, Expense, Member } from "@/lib/data/types";
 import {
   calculateCategoryBreakdown,
@@ -36,6 +39,7 @@ export function MemberContributionCard({
   youId?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
   // Same category list/order/colors the donut card already established —
   // sharing one vocabulary means a category renders in the identical color
   // in both charts.
@@ -66,6 +70,15 @@ export function MemberContributionCard({
     return row;
   });
 
+  async function handleExport() {
+    try {
+      await exportChartAsImage(chartRef.current, "member-contribution");
+      toast.success("Chart downloaded");
+    } catch {
+      toast.error("Couldn't export chart");
+    }
+  }
+
   return (
     <Card>
       <CardHeader
@@ -84,7 +97,21 @@ export function MemberContributionCard({
         <CardTitle className="text-base font-semibold text-text-primary md:text-lg">
           Member contribution
         </CardTitle>
-        <CardAction className="self-center">
+        <CardAction className="flex items-center gap-1 self-center">
+          {isOpen && breakdown.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                void handleExport();
+              }}
+            >
+              <DownloadIcon aria-hidden="true" />
+              <span className="sr-only">Export chart as image</span>
+            </Button>
+          )}
           {isOpen ? (
             <ChevronDownIcon
               aria-hidden="true"
@@ -108,12 +135,14 @@ export function MemberContributionCard({
               Not enough expenses to chart yet.
             </p>
           ) : (
-            <MemberContributionChart
-              data={rows}
-              categories={breakdown.map((entry) => entry.category)}
-              colorByCategory={colorByCategory}
-              groupCurrency={groupCurrency}
-            />
+            <div ref={chartRef}>
+              <MemberContributionChart
+                data={rows}
+                categories={breakdown.map((entry) => entry.category)}
+                colorByCategory={colorByCategory}
+                groupCurrency={groupCurrency}
+              />
+            </div>
           )}
         </CardContent>
       )}

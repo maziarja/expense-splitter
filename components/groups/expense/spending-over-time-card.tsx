@@ -1,8 +1,8 @@
 "use client";
 
 import { format } from "date-fns";
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronDownIcon, ChevronRightIcon, DownloadIcon } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -12,7 +12,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -21,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { exportChartAsImage } from "@/lib/charts/export-chart-image";
 import type { Expense } from "@/lib/data/types";
 import {
   calculateSpendingOverTime,
@@ -100,11 +103,21 @@ export function SpendingOverTimeCard({
   const [granularityOverride, setGranularityOverride] =
     useState<SpendingGranularity | null>(null);
   const granularity = granularityOverride ?? pickSpendingGranularity(expenses);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const data = useMemo(
     () => calculateSpendingOverTime(expenses, groupCurrency, granularity),
     [expenses, groupCurrency, granularity],
   );
+
+  async function handleExport() {
+    try {
+      await exportChartAsImage(chartRef.current, "spending-over-time");
+      toast.success("Chart downloaded");
+    } catch {
+      toast.error("Couldn't export chart");
+    }
+  }
 
   return (
     <Card>
@@ -143,6 +156,20 @@ export function SpendingOverTimeCard({
               </Tabs>
             </div>
           )}
+          {isOpen && data.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                void handleExport();
+              }}
+            >
+              <DownloadIcon aria-hidden="true" />
+              <span className="sr-only">Export chart as image</span>
+            </Button>
+          )}
           {isOpen ? (
             <ChevronDownIcon
               aria-hidden="true"
@@ -166,7 +193,7 @@ export function SpendingOverTimeCard({
               Not enough expenses to chart yet.
             </p>
           ) : (
-            <div style={{ height: 260 }}>
+            <div ref={chartRef} style={{ height: 260 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={data}
