@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CategoryIcon } from "@/components/groups/expense/category-icon";
 import { ManageCategoriesDialog } from "@/components/groups/expense/manage-categories-dialog";
 import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useAddExpenseForm } from "@/hooks/use-add-expense-form";
 import type { Category, Expense, Member } from "@/lib/data/types";
+import type { ReceiptExtraction } from "@/lib/receipt-extraction/schema";
 import { PREDEFINED_CATEGORIES } from "@/lib/splits/constants";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { getCurrencyOptions } from "@/lib/splits/currency";
@@ -102,10 +103,85 @@ export function AddExpenseForm({
   // closes that gap without ever swapping one SelectItem for a differently
   // -keyed one later — that swap is what previously confused Radix Select
   // into firing a spurious onValueChange("").
-  // Not yet part of the submitted expense (see the receipt-scanning plan) —
-  // step 2 of that feature will read this to drive AI extraction and
-  // pre-fill the fields below.
+  // Not yet part of the submitted expense — nothing downstream (schema,
+  // Prisma) reads either of these, same reasoning as the upload step itself.
   const [receiptImageUrl, setReceiptImageUrl] = useState<string | null>(null);
+  const [extraction, setExtraction] = useState<ReceiptExtraction | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+  // Guards against two real races: a slow extraction resolving after the
+  // user already removed/replaced the receipt (would clobber fields with
+  // stale data), and a setState landing after this form has unmounted
+  // (e.g. the user closed the panel mid-extraction).
+  const latestReceiptUrlRef = useRef<string | null>(null);
+  // Set (not just read) inside the effect body, not only the initializer —
+  // React/Next.js dev StrictMode mounts, cleans up, and re-mounts effects
+  // once on initial render, so a cleanup-only flip-to-false would get stuck
+  // false forever after that synthetic first cleanup, even though the
+  // component is genuinely still mounted.
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  async function handleReceiptChange(url: string | null) {
+    setReceiptImageUrl(url);
+    latestReceiptUrlRef.current = url;
+    setExtraction(null);
+    setExtractionError(null);
+
+    if (!url) return;
+
+    setExtracting(true);
+    try {
+      const response = await fetch("/api/receipt-extract", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ imageUrl: url }),
+      });
+      const body = await response.json();
+      if (latestReceiptUrlRef.current !== url || !mountedRef.current) return;
+
+      if (!response.ok) {
+        setExtractionError(
+          typeof body?.error === "string"
+            ? body.error
+            : "Couldn't extract receipt details.",
+        );
+        return;
+      }
+
+      const result = body as ReceiptExtraction;
+      setExtraction(result);
+
+      // Currency must be applied before amount: onCurrencyChange
+      // unconditionally resets amountInput, so setting it after would wipe
+      // the extracted amount right back out.
+      if (result.currency && result.currency.value !== currency) {
+        onCurrencyChange(result.currency.value);
+      }
+      if (result.amount) {
+        onAmountInputChange(String(result.amount.value));
+      }
+      if (result.merchant) {
+        setDescription(result.merchant.value);
+      }
+      if (result.date) {
+        setDate(result.date.value);
+      }
+    } catch {
+      if (latestReceiptUrlRef.current === url && mountedRef.current) {
+        setExtractionError("Couldn't reach the extraction service.");
+      }
+    } finally {
+      if (latestReceiptUrlRef.current === url && mountedRef.current) {
+        setExtracting(false);
+      }
+    }
+  }
 
   const [pendingCategories, setPendingCategories] = useState<Category[]>([]);
   const allCategories = useMemo(() => {
@@ -124,7 +200,9 @@ export function AddExpenseForm({
       <FieldGroup>
         <ReceiptUploadField
           value={receiptImageUrl}
-          onChange={setReceiptImageUrl}
+          onChange={handleReceiptChange}
+          extracting={extracting}
+          extractionError={extractionError}
         />
 
         <Field>

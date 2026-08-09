@@ -57,9 +57,13 @@ async function convertHeicToJpeg(file: File): Promise<File> {
 export function ReceiptUploadField({
   value,
   onChange,
+  extracting = false,
+  extractionError = null,
 }: {
   value: string | null;
   onChange: (url: string | null) => void;
+  extracting?: boolean;
+  extractionError?: string | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<"idle" | "converting" | "uploading">(
@@ -173,6 +177,13 @@ export function ReceiptUploadField({
           )}
         </Button>
       )}
+      {extracting && (
+        <p className="flex items-center gap-1.5 text-xs text-text-secondary">
+          <Spinner className="size-3" />
+          Extracting details…
+        </p>
+      )}
+      {extractionError && <FieldError>{extractionError}</FieldError>}
       {error && <FieldError>{error}</FieldError>}
     </Field>
   );

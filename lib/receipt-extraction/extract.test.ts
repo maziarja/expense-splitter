@@ -49,7 +49,7 @@ describe("extractReceiptData", () => {
     expect(result).toEqual(extraction);
     expect(generateText).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: { modelId: "gpt-5-mini" },
+        model: { modelId: "gpt-5-nano" },
       }),
     );
   });
