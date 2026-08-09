@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CategoryIcon } from "@/components/groups/expense/category-icon";
 import { ManageCategoriesDialog } from "@/components/groups/expense/manage-categories-dialog";
 import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
+import { ReceiptUploadField } from "@/components/groups/expense/receipt-upload-field";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -101,6 +102,11 @@ export function AddExpenseForm({
   // closes that gap without ever swapping one SelectItem for a differently
   // -keyed one later — that swap is what previously confused Radix Select
   // into firing a spurious onValueChange("").
+  // Not yet part of the submitted expense (see the receipt-scanning plan) —
+  // step 2 of that feature will read this to drive AI extraction and
+  // pre-fill the fields below.
+  const [receiptImageUrl, setReceiptImageUrl] = useState<string | null>(null);
+
   const [pendingCategories, setPendingCategories] = useState<Category[]>([]);
   const allCategories = useMemo(() => {
     const knownIds = new Set(categories.map((c) => c.id));
@@ -116,6 +122,11 @@ export function AddExpenseForm({
       className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-bg-secondary p-4"
     >
       <FieldGroup>
+        <ReceiptUploadField
+          value={receiptImageUrl}
+          onChange={setReceiptImageUrl}
+        />
+
         <Field>
           <FieldLabel htmlFor="expense-amount">
             Amount{" "}
