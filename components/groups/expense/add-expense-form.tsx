@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TriangleAlertIcon } from "lucide-react";
 import { CategoryIcon } from "@/components/groups/expense/category-icon";
 import { ManageCategoriesDialog } from "@/components/groups/expense/manage-categories-dialog";
 import { ExpenseSplitFields } from "@/components/groups/expense/expense-split-fields";
@@ -22,6 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAddExpenseForm } from "@/hooks/use-add-expense-form";
 import type { Category, Expense, Member } from "@/lib/data/types";
 import type { ReceiptExtraction } from "@/lib/receipt-extraction/schema";
@@ -31,6 +37,27 @@ import { getCurrencyOptions } from "@/lib/splits/currency";
 import { cn } from "@/lib/utils";
 
 const CURRENCY_OPTIONS = getCurrencyOptions();
+
+// Shown next to a field's label when the AI extraction wasn't confident
+// about that specific value — surfaced, not silently trusted, per this
+// feature's design. Disappears the moment the user edits that field (see
+// clearFieldConfidence below), rather than nagging indefinitely once
+// they've already reviewed it.
+function LowConfidenceFlag() {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <TriangleAlertIcon
+          aria-label="AI wasn't fully confident about this value — double-check it"
+          className="inline size-3 shrink-0 text-warning"
+        />
+      </TooltipTrigger>
+      <TooltipContent>
+        AI wasn&apos;t fully confident about this value — double-check it.
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export function AddExpenseForm({
   groupId,
@@ -183,6 +210,10 @@ export function AddExpenseForm({
     }
   }
 
+  function clearFieldConfidence(field: keyof ReceiptExtraction) {
+    setExtraction((prev) => (prev ? { ...prev, [field]: null } : prev));
+  }
+
   const [pendingCategories, setPendingCategories] = useState<Category[]>([]);
   const allCategories = useMemo(() => {
     const knownIds = new Set(categories.map((c) => c.id));
@@ -210,21 +241,31 @@ export function AddExpenseForm({
             Amount{" "}
             <span aria-hidden="true" className="text-destructive">
               *
-            </span>
+            </span>{" "}
+            {extraction?.amount?.confidence === "low" && <LowConfidenceFlag />}
           </FieldLabel>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Input
               id="expense-amount"
               inputMode="decimal"
               placeholder="0.00"
               value={amountInput}
-              onChange={(e) => onAmountInputChange(e.target.value)}
+              onChange={(e) => {
+                onAmountInputChange(e.target.value);
+                clearFieldConfidence("amount");
+              }}
               aria-invalid={touched && !hasValidAmount}
               aria-required="true"
               autoFocus
               className="font-mono text-base font-semibold"
             />
-            <Select value={currency} onValueChange={onCurrencyChange}>
+            <Select
+              value={currency}
+              onValueChange={(v) => {
+                onCurrencyChange(v as CurrencyCode);
+                clearFieldConfidence("currency");
+              }}
+            >
               <SelectTrigger className="w-28 shrink-0">
                 <SelectValue />
               </SelectTrigger>
@@ -236,6 +277,9 @@ export function AddExpenseForm({
                 ))}
               </SelectContent>
             </Select>
+            {extraction?.currency?.confidence === "low" && (
+              <LowConfidenceFlag />
+            )}
           </div>
           {touched && !hasValidAmount && (
             <FieldError>Enter an amount greater than zero.</FieldError>
@@ -273,13 +317,19 @@ export function AddExpenseForm({
             Description{" "}
             <span aria-hidden="true" className="text-destructive">
               *
-            </span>
+            </span>{" "}
+            {extraction?.merchant?.confidence === "low" && (
+              <LowConfidenceFlag />
+            )}
           </FieldLabel>
           <Input
             id="expense-description"
             placeholder="Dinner at..."
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              clearFieldConfidence("merchant");
+            }}
             aria-invalid={touched && !description.trim()}
             aria-required="true"
           />
@@ -290,12 +340,18 @@ export function AddExpenseForm({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field>
-            <FieldLabel htmlFor="expense-date">Date</FieldLabel>
+            <FieldLabel htmlFor="expense-date">
+              Date{" "}
+              {extraction?.date?.confidence === "low" && <LowConfidenceFlag />}
+            </FieldLabel>
             <Input
               id="expense-date"
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => {
+                setDate(e.target.value);
+                clearFieldConfidence("date");
+              }}
             />
           </Field>
           <Field>
