@@ -22,8 +22,14 @@ export async function POST(request: Request) {
     return NextResponse.json(extraction);
   } catch (error) {
     if (error instanceof ReceiptExtractionError) {
+      // "not-configured" means OPENAI_API_KEY is missing server-side — an
+      // internal detail, not something the client should ever see verbatim.
+      const message =
+        error.code === "not-configured"
+          ? "Receipt scanning isn't available right now."
+          : error.message;
       return NextResponse.json(
-        { error: error.message },
+        { error: message },
         { status: error.code === "not-configured" ? 500 : 502 },
       );
     }

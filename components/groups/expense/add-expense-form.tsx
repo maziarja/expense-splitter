@@ -123,29 +123,13 @@ export function AddExpenseForm({
     onSuccess,
   });
 
-  // A just-created category needs to be selectable and shown immediately,
-  // but in authenticated mode `categories` only reflects it once
-  // router.refresh()'s async round trip completes. Merging in an optimistic
-  // copy (keyed by its real id, same as the eventual server-confirmed one)
-  // closes that gap without ever swapping one SelectItem for a differently
-  // -keyed one later — that swap is what previously confused Radix Select
-  // into firing a spurious onValueChange("").
-  // Not yet part of the submitted expense — nothing downstream (schema,
-  // Prisma) reads either of these, same reasoning as the upload step itself.
   const [receiptImageUrl, setReceiptImageUrl] = useState<string | null>(null);
   const [extraction, setExtraction] = useState<ReceiptExtraction | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [extractionError, setExtractionError] = useState<string | null>(null);
-  // Guards against two real races: a slow extraction resolving after the
-  // user already removed/replaced the receipt (would clobber fields with
-  // stale data), and a setState landing after this form has unmounted
-  // (e.g. the user closed the panel mid-extraction).
+
   const latestReceiptUrlRef = useRef<string | null>(null);
-  // Set (not just read) inside the effect body, not only the initializer —
-  // React/Next.js dev StrictMode mounts, cleans up, and re-mounts effects
-  // once on initial render, so a cleanup-only flip-to-false would get stuck
-  // false forever after that synthetic first cleanup, even though the
-  // component is genuinely still mounted.
+
   const mountedRef = useRef(false);
   useEffect(() => {
     mountedRef.current = true;
@@ -154,14 +138,7 @@ export function AddExpenseForm({
     };
   }, []);
 
-  async function handleReceiptChange(url: string | null) {
-    setReceiptImageUrl(url);
-    latestReceiptUrlRef.current = url;
-    setExtraction(null);
-    setExtractionError(null);
-
-    if (!url) return;
-
+  async function runExtraction(url: string) {
     setExtracting(true);
     try {
       const response = await fetch("/api/receipt-extract", {
@@ -210,6 +187,22 @@ export function AddExpenseForm({
     }
   }
 
+  async function handleReceiptChange(url: string | null) {
+    setReceiptImageUrl(url);
+    latestReceiptUrlRef.current = url;
+    setExtraction(null);
+    setExtractionError(null);
+
+    if (!url) return;
+    await runExtraction(url);
+  }
+
+  function retryExtraction() {
+    if (!receiptImageUrl) return;
+    setExtractionError(null);
+    runExtraction(receiptImageUrl);
+  }
+
   function clearFieldConfidence(field: keyof ReceiptExtraction) {
     setExtraction((prev) => (prev ? { ...prev, [field]: null } : prev));
   }
@@ -234,6 +227,7 @@ export function AddExpenseForm({
           onChange={handleReceiptChange}
           extracting={extracting}
           extractionError={extractionError}
+          onRetryExtraction={retryExtraction}
         />
 
         <Field>

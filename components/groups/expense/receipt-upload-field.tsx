@@ -59,11 +59,13 @@ export function ReceiptUploadField({
   onChange,
   extracting = false,
   extractionError = null,
+  onRetryExtraction,
 }: {
   value: string | null;
   onChange: (url: string | null) => void;
   extracting?: boolean;
   extractionError?: string | null;
+  onRetryExtraction?: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<"idle" | "converting" | "uploading">(
@@ -183,7 +185,28 @@ export function ReceiptUploadField({
           Extracting details…
         </p>
       )}
-      {extractionError && <FieldError>{extractionError}</FieldError>}
+      {extractionError && (
+        <div className="flex flex-col gap-0.5">
+          <FieldError>{extractionError}</FieldError>
+          <p className="text-xs text-text-secondary">
+            {onRetryExtraction ? (
+              <>
+                You can still fill in the details below, or{" "}
+                <button
+                  type="button"
+                  onClick={onRetryExtraction}
+                  className="text-accent underline-offset-2 hover:underline"
+                >
+                  try scanning again
+                </button>
+                .
+              </>
+            ) : (
+              "You can still fill in the details below."
+            )}
+          </p>
+        </div>
+      )}
       {error && <FieldError>{error}</FieldError>}
     </Field>
   );
