@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
+import { toast } from "sonner";
 
 import { getExchangeRateAction } from "@/lib/actions/exchange-rate";
 import { createExpenseInputSchema } from "@/lib/data/data-access";
@@ -57,6 +58,9 @@ export function useAddExpenseForm({
   defaultPayerId,
   expense,
   onSuccess,
+  onOptimisticCreate,
+  onOptimisticSettled,
+  onOptimisticFailed,
 }: {
   groupId: string;
   activeMembers: Member[];
@@ -64,6 +68,9 @@ export function useAddExpenseForm({
   defaultPayerId?: string;
   expense?: Expense;
   onSuccess: () => void;
+  onOptimisticCreate?: (expense: Expense) => void;
+  onOptimisticSettled?: (tempId: string) => void;
+  onOptimisticFailed?: (tempId: string) => void;
 }) {
   const dataAccess = useDataAccessContext();
   const refresh = useDataAccessRefresh();
@@ -311,19 +318,48 @@ export function useAddExpenseForm({
       return;
     }
 
-    setPending(true);
-    try {
-      if (expense) {
+    if (expense) {
+      setPending(true);
+      try {
         await dataAccess.updateExpense(groupId, expense.id, parsed.data);
-      } else {
-        await dataAccess.createExpense(groupId, parsed.data);
+        onSuccess();
+        refresh();
+      } catch {
+        setSubmitError("Couldn't save this expense. Please try again.");
+      } finally {
+        setPending(false);
       }
+    } else if (onOptimisticCreate) {
+      // Closes the panel and shows the new expense in the list immediately
+      // rather than waiting on the write's round trip (see the "Confirm
+      // optimistic updates..." Phase 11 step — the actual write still takes
+      // several seconds against Neon, this just stops the UI from blocking
+      // on it). The write runs in the background and reconciles via
+      // RecentExpensesCard's optimisticExpenses state.
+      const tempId = `temp-${crypto.randomUUID()}`;
+      onOptimisticCreate({ ...parsed.data, id: tempId });
       onSuccess();
-      refresh();
-    } catch {
-      setSubmitError("Couldn't save this expense. Please try again.");
-    } finally {
-      setPending(false);
+      void (async () => {
+        try {
+          await dataAccess.createExpense(groupId, parsed.data);
+          onOptimisticSettled?.(tempId);
+          refresh();
+        } catch {
+          onOptimisticFailed?.(tempId);
+          toast.error("Couldn't save this expense. Please try again.");
+        }
+      })();
+    } else {
+      setPending(true);
+      try {
+        await dataAccess.createExpense(groupId, parsed.data);
+        onSuccess();
+        refresh();
+      } catch {
+        setSubmitError("Couldn't save this expense. Please try again.");
+      } finally {
+        setPending(false);
+      }
     }
   }
 

@@ -68,6 +68,9 @@ export function AddExpenseForm({
   expense,
   onSuccess,
   onCancel,
+  onOptimisticCreate,
+  onOptimisticSettled,
+  onOptimisticFailed,
 }: {
   groupId: string;
   activeMembers: Member[];
@@ -77,6 +80,9 @@ export function AddExpenseForm({
   expense?: Expense;
   onSuccess: () => void;
   onCancel: () => void;
+  onOptimisticCreate?: (expense: Expense) => void;
+  onOptimisticSettled?: (tempId: string) => void;
+  onOptimisticFailed?: (tempId: string) => void;
 }) {
   const {
     amountInput,
@@ -121,6 +127,9 @@ export function AddExpenseForm({
     defaultPayerId,
     expense,
     onSuccess,
+    onOptimisticCreate,
+    onOptimisticSettled,
+    onOptimisticFailed,
   });
 
   const [receiptImageUrl, setReceiptImageUrl] = useState<string | null>(null);

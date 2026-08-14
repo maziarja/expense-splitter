@@ -18,10 +18,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Category, Expense, Member, SplitType } from "@/lib/data/types";
 import type { CurrencyCode } from "@/lib/splits/constants";
 import { formatCurrency } from "@/lib/splits/currency";
+import { cn } from "@/lib/utils";
 
 const SPLIT_TYPE_LABELS: Partial<Record<SplitType, string>> = {
   exact: "Exact amounts",
@@ -37,6 +39,7 @@ export function ExpenseListItem({
   activeMembers,
   groupCurrency,
   categories,
+  pending,
 }: {
   expense: Expense;
   payer: Member | undefined;
@@ -45,6 +48,7 @@ export function ExpenseListItem({
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
   categories: Category[];
+  pending?: boolean;
 }) {
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
@@ -100,7 +104,12 @@ export function ExpenseListItem({
     </Button>
   );
 
-  const actionsMenu = (
+  const actionsMenu = pending ? (
+    <span className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
+      <Spinner className="size-3" />
+      Adding…
+    </span>
+  ) : (
     <ExpenseActionsMenu
       triggerRef={actionsTriggerRef}
       onEdit={() => setIsEditing(true)}
@@ -127,7 +136,7 @@ export function ExpenseListItem({
   );
 
   const mobileRow = (
-    <li className="py-3">
+    <li className={cn("py-3", pending && "opacity-60")}>
       <div className="flex items-start gap-1">
         {chevronButton}
         <div className="min-w-0 flex-1">
@@ -173,7 +182,7 @@ export function ExpenseListItem({
   );
 
   const desktopRow = (
-    <li className="py-3">
+    <li className={cn("py-3", pending && "opacity-60")}>
       <div className="flex items-center gap-4">
         {chevronButton}
         <span title={expense.category} className="shrink-0">
