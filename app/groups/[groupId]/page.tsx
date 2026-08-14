@@ -10,6 +10,8 @@ import { getCurrentMember } from "@/lib/data/current-member";
 import {
   filterExpenses,
   filtersFromSearchParams,
+  parseShowParam,
+  sortByDateDesc,
 } from "@/lib/data/expense-filters";
 import { useGuestGroup, useGuestReady } from "@/lib/data/guest-hooks";
 
@@ -29,10 +31,11 @@ function GroupDashboardPageInner() {
 
   const you = getCurrentMember(group.members);
 
-  const filters = filtersFromSearchParams(
-    Object.fromEntries(searchParams.entries()),
-  );
+  const sp = Object.fromEntries(searchParams.entries());
+  const filters = filtersFromSearchParams(sp);
+  const show = parseShowParam(sp.show);
   const filteredExpenses = filterExpenses(group.expenses, filters);
+  const visibleExpenses = sortByDateDesc(filteredExpenses).slice(0, show);
 
   return (
     <GroupDetailView
@@ -42,6 +45,7 @@ function GroupDashboardPageInner() {
       you={you}
       filters={filters}
       filteredExpenses={filteredExpenses}
+      visibleExpenses={visibleExpenses}
     />
   );
 }

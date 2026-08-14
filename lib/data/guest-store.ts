@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { DataAccess } from "./data-access";
+import { filterExpenses, sortByDateDesc } from "./expense-filters";
 import {
   addMember as addMemberInData,
   createCategory as createCategoryInData,
@@ -121,8 +122,13 @@ export const guestDataAccess: DataAccess = {
     commit(removeMemberInData(currentData(), groupId, memberId));
   },
 
-  async listExpenses(groupId) {
-    return requireGroup(currentData(), groupId).expenses;
+  async listExpenses(groupId, options) {
+    const expenses = requireGroup(currentData(), groupId).expenses;
+    const filtered = options?.filters
+      ? filterExpenses(expenses, options.filters)
+      : expenses;
+    const sorted = sortByDateDesc(filtered);
+    return options?.limit ? sorted.slice(0, options.limit) : sorted;
   },
 
   async getExpense(groupId, expenseId) {

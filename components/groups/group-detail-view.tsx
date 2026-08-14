@@ -55,6 +55,7 @@ export function GroupDetailView({
   you,
   filters,
   filteredExpenses,
+  visibleExpenses,
 }: {
   group: GroupDetail;
   groupId: string;
@@ -62,6 +63,7 @@ export function GroupDetailView({
   you: Member | undefined;
   filters: ExpenseFilterState;
   filteredExpenses: Expense[];
+  visibleExpenses: Expense[];
 }) {
   const activeMembers = group.members.filter((m) => !m.deletedAt);
   const membersById = new Map(group.members.map((m) => [m.id, m] as const));
@@ -148,7 +150,8 @@ export function GroupDetailView({
 
         <RecentExpensesCard
           groupId={groupId}
-          expenses={filteredExpenses}
+          visibleExpenses={visibleExpenses}
+          totalCount={filteredExpenses.length}
           membersById={membersById}
           activeMembers={activeMembers}
           groupCurrency={group.currency}

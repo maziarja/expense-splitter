@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ExpenseFilterState } from "./expense-filters";
 import {
   currencyCodeSchema,
   expenseBaseSchema,
@@ -91,7 +92,10 @@ export type DataAccess = {
   addMember(groupId: string, input: AddMemberInput): Promise<Member>;
   removeMember(groupId: string, memberId: string): Promise<void>;
 
-  listExpenses(groupId: string): Promise<Expense[]>;
+  listExpenses(
+    groupId: string,
+    options?: { filters?: ExpenseFilterState; limit?: number },
+  ): Promise<Expense[]>;
   getExpense(groupId: string, expenseId: string): Promise<Expense | null>;
   createExpense(groupId: string, input: CreateExpenseInput): Promise<Expense>;
   updateExpense(

@@ -17,6 +17,25 @@ export const emptyExpenseFilters: ExpenseFilterState = {
   dateTo: null,
 };
 
+export const INITIAL_VISIBLE_EXPENSES = 5;
+export const LOAD_MORE_INCREMENT = 20;
+export const MAX_VISIBLE_EXPENSES = 500; // clamp against a hand-edited ?show= URL
+
+export function parseShowParam(value: string | string[] | undefined): number {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const n = raw ? Number.parseInt(raw, 10) : INITIAL_VISIBLE_EXPENSES;
+  if (!Number.isFinite(n) || n < INITIAL_VISIBLE_EXPENSES) {
+    return INITIAL_VISIBLE_EXPENSES;
+  }
+  return Math.min(n, MAX_VISIBLE_EXPENSES);
+}
+
+export function sortByDateDesc(expenses: Expense[]): Expense[] {
+  return [...expenses].sort(
+    (a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf(),
+  );
+}
+
 export function hasActiveFilters(filters: ExpenseFilterState): boolean {
   return (
     filters.category !== null ||
@@ -80,13 +99,23 @@ export function filtersFromSearchParams(
 
 // Builds a query string (via URLSearchParams, a standard Web API — safe in
 // both server and client code) from the current filters, dropping null
-// values entirely so the URL stays clean when nothing's active.
-export function filtersToQueryString(filters: ExpenseFilterState): string {
+// values entirely so the URL stays clean when nothing's active. `show` is a
+// separate, optional concern (how many expenses are revealed, not what's
+// filtered) — omitting it (the default) means callers that only touch
+// filters, like expense-filters.tsx's navigate(), naturally reset pagination
+// back to the initial page whenever a filter changes.
+export function filtersToQueryString(
+  filters: ExpenseFilterState,
+  show?: number | null,
+): string {
   const params = new URLSearchParams();
   if (filters.category) params.set("category", filters.category);
   if (filters.paidBy) params.set("paidBy", filters.paidBy);
   if (filters.includesMember) params.set("includes", filters.includesMember);
   if (filters.dateFrom) params.set("from", filters.dateFrom);
   if (filters.dateTo) params.set("to", filters.dateTo);
+  if (show && show > INITIAL_VISIBLE_EXPENSES) {
+    params.set("show", String(show));
+  }
   return params.toString();
 }

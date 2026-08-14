@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/auth";
 import {
   filterExpenses,
   filtersFromSearchParams,
+  parseShowParam,
 } from "@/lib/data/expense-filters";
 import { prismaDataAccess } from "@/lib/data/prisma-data-access";
 
@@ -28,15 +29,20 @@ export default async function DashboardGroupPage({
 }) {
   const { groupId } = await params;
   const session = await requireAuth();
-  const group = await prismaDataAccess.getGroup(groupId);
+
+  const sp = await searchParams;
+  const filters = filtersFromSearchParams(sp);
+  const show = parseShowParam(sp.show);
+  const [group, visibleExpenses] = await Promise.all([
+    prismaDataAccess.getGroup(groupId),
+    prismaDataAccess.listExpenses(groupId, { filters, limit: show }),
+  ]);
 
   if (!group) {
     notFound();
   }
 
   const you = group.members.find((m) => m.userId === session.user.id);
-
-  const filters = filtersFromSearchParams(await searchParams);
   const filteredExpenses = filterExpenses(group.expenses, filters);
 
   return (
@@ -47,6 +53,7 @@ export default async function DashboardGroupPage({
       you={you}
       filters={filters}
       filteredExpenses={filteredExpenses}
+      visibleExpenses={visibleExpenses}
     />
   );
 }

@@ -197,4 +197,32 @@ describe("guestDataAccess", () => {
       guestDataAccess.deleteCategory("grp_birthday", "not-a-real-category"),
     ).rejects.toMatchObject({ code: "CATEGORY_NOT_FOUND" });
   });
+
+  it("listExpenses returns everything, most-recent-first, when called without options", async () => {
+    const expenses = await guestDataAccess.listExpenses("grp_japan_2024");
+    expect(expenses).toHaveLength(13);
+    expect(expenses[0].date >= expenses[expenses.length - 1].date).toBe(true);
+  });
+
+  it("listExpenses respects a limit", async () => {
+    const expenses = await guestDataAccess.listExpenses("grp_japan_2024", {
+      limit: 5,
+    });
+    expect(expenses).toHaveLength(5);
+  });
+
+  it("listExpenses applies filters before the limit", async () => {
+    const expenses = await guestDataAccess.listExpenses("grp_japan_2024", {
+      filters: {
+        category: null,
+        paidBy: "mem_alex",
+        includesMember: null,
+        dateFrom: null,
+        dateTo: null,
+      },
+      limit: 2,
+    });
+    expect(expenses).toHaveLength(2);
+    expect(expenses.every((e) => e.paidBy === "mem_alex")).toBe(true);
+  });
 });

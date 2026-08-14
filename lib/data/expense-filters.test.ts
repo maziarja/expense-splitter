@@ -5,6 +5,10 @@ import {
   filtersFromSearchParams,
   filtersToQueryString,
   hasActiveFilters,
+  INITIAL_VISIBLE_EXPENSES,
+  MAX_VISIBLE_EXPENSES,
+  parseShowParam,
+  sortByDateDesc,
   type ExpenseFilterState,
 } from "./expense-filters";
 import type { Expense } from "./types";
@@ -182,5 +186,70 @@ describe("filtersFromSearchParams / filtersToQueryString", () => {
     expect(
       filtersFromSearchParams({ category: ["Food & Drink", "Transport"] }),
     ).toEqual({ ...emptyExpenseFilters, category: "Food & Drink" });
+  });
+
+  it("includes show only when it's above the initial default", () => {
+    expect(filtersToQueryString(emptyExpenseFilters, 25)).toBe("show=25");
+    expect(
+      filtersToQueryString(emptyExpenseFilters, INITIAL_VISIBLE_EXPENSES),
+    ).toBe("");
+    expect(filtersToQueryString(emptyExpenseFilters, null)).toBe("");
+    expect(filtersToQueryString(emptyExpenseFilters)).toBe("");
+  });
+
+  it("combines filters and show in one query string", () => {
+    const filters: ExpenseFilterState = {
+      ...emptyExpenseFilters,
+      category: "Transport",
+    };
+    expect(filtersToQueryString(filters, 45)).toBe(
+      "category=Transport&show=45",
+    );
+  });
+});
+
+describe("parseShowParam", () => {
+  it("defaults to the initial visible count when absent", () => {
+    expect(parseShowParam(undefined)).toBe(INITIAL_VISIBLE_EXPENSES);
+  });
+
+  it("parses a valid numeric string", () => {
+    expect(parseShowParam("25")).toBe(25);
+  });
+
+  it("clamps below the initial default back up to it", () => {
+    expect(parseShowParam("1")).toBe(INITIAL_VISIBLE_EXPENSES);
+    expect(parseShowParam("-5")).toBe(INITIAL_VISIBLE_EXPENSES);
+  });
+
+  it("clamps above the max back down to it", () => {
+    expect(parseShowParam("999999")).toBe(MAX_VISIBLE_EXPENSES);
+  });
+
+  it("falls back to the default for non-numeric input", () => {
+    expect(parseShowParam("not-a-number")).toBe(INITIAL_VISIBLE_EXPENSES);
+  });
+
+  it("takes the first value when given an array", () => {
+    expect(parseShowParam(["45", "5"])).toBe(45);
+  });
+});
+
+describe("sortByDateDesc", () => {
+  it("sorts most-recent-first without mutating the input", () => {
+    const older = makeExpense({
+      id: "older",
+      date: "2026-01-01T00:00:00.000Z",
+    });
+    const newer = makeExpense({
+      id: "newer",
+      date: "2026-02-01T00:00:00.000Z",
+    });
+    const input = [older, newer];
+
+    const sorted = sortByDateDesc(input);
+
+    expect(sorted).toEqual([newer, older]);
+    expect(input).toEqual([older, newer]);
   });
 });

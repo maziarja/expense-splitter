@@ -16,6 +16,7 @@ import {
   type DataAccess,
   type DataAccessErrorCode,
 } from "./data-access";
+import { buildExpenseWhere } from "./expense-where";
 import type {
   Category,
   Expense,
@@ -466,13 +467,14 @@ export const prismaDataAccess: DataAccess = {
     });
   },
 
-  async listExpenses(groupId) {
+  async listExpenses(groupId, options) {
     const { id: userId } = await getSessionUser();
     await requireGroupMembership(prisma, groupId, userId);
     const expenses = await prisma.expense.findMany({
-      where: { groupId },
+      where: buildExpenseWhere(groupId, options?.filters),
       include: { splits: true },
       orderBy: { date: "desc" },
+      ...(options?.limit ? { take: options.limit } : {}),
     });
     return expenses.map(toExpense);
   },

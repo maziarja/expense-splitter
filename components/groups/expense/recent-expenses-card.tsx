@@ -1,7 +1,8 @@
 "use client";
 
 import { FilterIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { AddExpensePanel } from "@/components/groups/expense/add-expense-panel";
 import { ExpenseFilters } from "@/components/groups/expense/expense-filters";
@@ -15,17 +16,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  filtersToQueryString,
   hasActiveFilters,
+  INITIAL_VISIBLE_EXPENSES,
+  LOAD_MORE_INCREMENT,
   type ExpenseFilterState,
 } from "@/lib/data/expense-filters";
 import type { Category, Expense, Member } from "@/lib/data/types";
 import type { CurrencyCode } from "@/lib/splits/constants";
 
-const VISIBLE_COUNT = 5;
-
 export function RecentExpensesCard({
   groupId,
-  expenses,
+  visibleExpenses,
+  totalCount,
   membersById,
   activeMembers,
   groupCurrency,
@@ -34,7 +37,8 @@ export function RecentExpensesCard({
   defaultPayerId,
 }: {
   groupId: string;
-  expenses: Expense[];
+  visibleExpenses: Expense[];
+  totalCount: number;
   membersById: Map<string, Member>;
   activeMembers: Member[];
   groupCurrency: CurrencyCode;
@@ -42,15 +46,13 @@ export function RecentExpensesCard({
   filters: ExpenseFilterState;
   defaultPayerId?: string;
 }) {
-  const sorted = useMemo(
-    () =>
-      [...expenses].sort(
-        (a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf(),
-      ),
-    [expenses],
-  );
-  const [expanded, setExpanded] = useState(false);
-  const visible = expanded ? sorted : sorted.slice(0, VISIBLE_COUNT);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  function navigateToShow(show: number | null) {
+    const qs = filtersToQueryString(filters, show);
+    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
 
   const [filtersOpen, setFiltersOpen] = useState(() =>
     hasActiveFilters(filters),
@@ -96,17 +98,17 @@ export function RecentExpensesCard({
             membersById={membersById}
           />
         )}
-        {sorted.length === 0 && hasActiveFilters(filters) ? (
+        {totalCount === 0 && hasActiveFilters(filters) ? (
           <p className="text-xs text-text-tertiary md:text-sm">
             No expenses match your filters.
           </p>
-        ) : sorted.length === 0 ? (
+        ) : totalCount === 0 ? (
           <p className="text-xs text-text-tertiary md:text-sm">
             No expenses yet.
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-border-subtle">
-            {visible.map((expense) => (
+            {visibleExpenses.map((expense) => (
               <ExpenseListItem
                 key={expense.id}
                 expense={expense}
@@ -121,13 +123,26 @@ export function RecentExpensesCard({
           </ul>
         )}
       </CardContent>
-      {sorted.length > VISIBLE_COUNT && (
+      {totalCount > visibleExpenses.length ? (
         <CardFooter className="justify-center border-t-0 bg-transparent">
-          <Button variant="link" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? "Show less" : `View all ${sorted.length} expenses`}
+          <Button
+            variant="link"
+            onClick={() =>
+              navigateToShow(visibleExpenses.length + LOAD_MORE_INCREMENT)
+            }
+          >
+            Load{" "}
+            {Math.min(LOAD_MORE_INCREMENT, totalCount - visibleExpenses.length)}{" "}
+            more
           </Button>
         </CardFooter>
-      )}
+      ) : visibleExpenses.length > INITIAL_VISIBLE_EXPENSES ? (
+        <CardFooter className="justify-center border-t-0 bg-transparent">
+          <Button variant="link" onClick={() => navigateToShow(null)}>
+            Show less
+          </Button>
+        </CardFooter>
+      ) : null}
     </Card>
   );
 }
