@@ -11,25 +11,25 @@
           "id": "mem_alex",
           "name": "Alex Chen",
           "email": "alex@example.com",
-          "avatarColor": "#6366F1"
+          "avatarColor": "#6063F1"
         },
         {
           "id": "mem_jordan",
           "name": "Jordan Park",
           "email": "jordan@example.com",
-          "avatarColor": "#F59E0B"
+          "avatarColor": "#A36907"
         },
         {
           "id": "mem_sam",
           "name": "Sam Rivera",
           "email": "sam@example.com",
-          "avatarColor": "#EC4899"
+          "avatarColor": "#E0177A"
         },
         {
           "id": "mem_taylor",
           "name": "Taylor Kim",
           "email": "taylor@example.com",
-          "avatarColor": "#14B8A6"
+          "avatarColor": "#0E8477"
         }
       ],
       "expenses": [
@@ -447,19 +447,19 @@
           "id": "mem_riley",
           "name": "Riley Morgan",
           "email": "riley@example.com",
-          "avatarColor": "#8B5CF6"
+          "avatarColor": "#8553F6"
         },
         {
           "id": "mem_casey",
           "name": "Casey Brooks",
           "email": "casey@example.com",
-          "avatarColor": "#F97316"
+          "avatarColor": "#C35305"
         },
         {
           "id": "mem_drew",
           "name": "Drew Patel",
           "email": "drew@example.com",
-          "avatarColor": "#06B6D4"
+          "avatarColor": "#048196"
         }
       ],
       "expenses": [
@@ -751,25 +751,25 @@
           "id": "mem_mia",
           "name": "Mia Torres",
           "email": "mia@example.com",
-          "avatarColor": "#EC4899"
+          "avatarColor": "#E0177A"
         },
         {
           "id": "mem_noah",
           "name": "Noah Williams",
           "email": "noah@example.com",
-          "avatarColor": "#8B5CF6"
+          "avatarColor": "#8553F6"
         },
         {
           "id": "mem_priya",
           "name": "Priya Sharma",
           "email": "priya@example.com",
-          "avatarColor": "#F59E0B"
+          "avatarColor": "#A36907"
         },
         {
           "id": "mem_ethan",
           "name": "Ethan Nakamura",
           "email": "ethan@example.com",
-          "avatarColor": "#06B6D4"
+          "avatarColor": "#048196"
         }
       ],
       "expenses": [
@@ -1021,25 +1021,25 @@
           "id": "mem_olivia",
           "name": "Olivia Hayes",
           "email": "olivia@example.com",
-          "avatarColor": "#10B981"
+          "avatarColor": "#0C865D"
         },
         {
           "id": "mem_ben",
           "name": "Ben Gutierrez",
           "email": "ben@example.com",
-          "avatarColor": "#6366F1"
+          "avatarColor": "#6063F1"
         },
         {
           "id": "mem_chloe",
           "name": "Chloe Yun",
           "email": "chloe@example.com",
-          "avatarColor": "#F43F5E"
+          "avatarColor": "#E90D33"
         },
         {
           "id": "mem_marcus",
           "name": "Marcus Webb",
           "email": "marcus@example.com",
-          "avatarColor": "#F97316"
+          "avatarColor": "#C35305"
         }
       ],
       "expenses": [
@@ -1186,30 +1186,30 @@
           "id": "mem_jake",
           "name": "Jake Foster",
           "email": "jake@example.com",
-          "avatarColor": "#14B8A6"
+          "avatarColor": "#0E8477"
         },
         {
           "id": "mem_lily",
           "name": "Lily Tran",
           "email": "lily@example.com",
-          "avatarColor": "#A855F7"
+          "avatarColor": "#9E42F6"
         },
         {
           "id": "mem_omar",
           "name": "Omar Hassan",
           "email": "omar@example.com",
-          "avatarColor": "#EF4444"
+          "avatarColor": "#E91414"
         },
         {
           "id": "mem_rachel",
           "name": "Rachel Kim",
           "email": "rachel@example.com",
-          "avatarColor": "#3B82F6"
+          "avatarColor": "#1B6DF5"
         },
         {
           "id": "mem_dev",
           "name": "Dev Okafor",
-          "avatarColor": "#F59E0B"
+          "avatarColor": "#A36907"
         }
       ],
       "expenses": [

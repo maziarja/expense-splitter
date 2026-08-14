@@ -1,17 +1,20 @@
 // Same hue family as data/sample-groups.json's hand-picked member colors.
+// Darkened from the original Tailwind 500-shade values to reach 4.5:1
+// contrast against the white initials text rendered on top of them
+// (Lighthouse accessibility audit flagged the originals as WCAG AA failures).
 export const AVATAR_COLOR_PALETTE = [
-  "#6366F1",
-  "#F59E0B",
-  "#EC4899",
-  "#14B8A6",
-  "#8B5CF6",
-  "#F97316",
-  "#06B6D4",
-  "#10B981",
-  "#F43F5E",
-  "#A855F7",
-  "#EF4444",
-  "#3B82F6",
+  "#6063F1",
+  "#A36907",
+  "#E0177A",
+  "#0E8477",
+  "#8553F6",
+  "#C35305",
+  "#048196",
+  "#0C865D",
+  "#E90D33",
+  "#9E42F6",
+  "#E91414",
+  "#1B6DF5",
 ] as const;
 
 // Random rather than deterministic, but still avoids an obvious collision

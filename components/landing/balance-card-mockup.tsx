@@ -16,9 +16,9 @@ import { Separator } from "@/components/ui/separator";
 import { SettledCelebration } from "@/components/landing/settled-celebration";
 
 const members = [
-  { initials: "AC", color: "#6366f1" },
-  { initials: "JP", color: "#f59e0b" },
-  { initials: "SR", color: "#ec4899" },
+  { initials: "AC", color: "#6063f1" },
+  { initials: "JP", color: "#a36907" },
+  { initials: "SR", color: "#e0177a" },
 ];
 
 export function BalanceCardMockup() {

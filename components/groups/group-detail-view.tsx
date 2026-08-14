@@ -1,20 +1,52 @@
+import dynamic from "next/dynamic";
+
 import { GroupSummaryCard } from "@/components/groups/dashboard/group-summary-card";
 import { PersonalBalanceCard } from "@/components/groups/dashboard/personal-balance-card";
 import { SettlementSuggestionsCard } from "@/components/groups/dashboard/settlement-suggestions-card";
-import { CategoryBreakdownCard } from "@/components/groups/expense/category-breakdown-card";
-import { MemberContributionCard } from "@/components/groups/expense/member-contribution-card";
 import { RecentExpensesCard } from "@/components/groups/expense/recent-expenses-card";
-import { SpendingOverTimeCard } from "@/components/groups/expense/spending-over-time-card";
 import { GroupActionsMenu } from "@/components/groups/group/group-actions-menu";
 import { MembersCard } from "@/components/groups/members/members-card";
 import { SettlementHistoryCard } from "@/components/groups/settlement/settlement-history-card";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   filterExpenses,
   type ExpenseFilterState,
 } from "@/lib/data/expense-filters";
 import type { Expense, GroupDetail, Member } from "@/lib/data/types";
 import { calculateTotalSpent } from "@/lib/splits/balance";
+
+// Recharts pulls a sizeable chunk into the bundle; these three cards all
+// render collapsed by default, so deferring the import until they're on the
+// page (rather than bundling recharts into the initial page chunk) keeps it
+// out of the critical path for first paint. Grouped into one dynamic import
+// (rather than one per card) so the split-off chunk bundles recharts once.
+function ChartsSectionSkeleton() {
+  return (
+    <>
+      {[
+        "Spending over time",
+        "Spending by category",
+        "Member contributions",
+      ].map((title) => (
+        <div
+          key={title}
+          className="flex h-14 items-center rounded-xl bg-card px-4 ring-1 ring-foreground/10"
+        >
+          <Skeleton className="h-5 w-40" />
+        </div>
+      ))}
+    </>
+  );
+}
+
+const ChartsSection = dynamic(
+  () =>
+    import("@/components/groups/expense/charts-section").then(
+      (m) => m.ChartsSection,
+    ),
+  { loading: ChartsSectionSkeleton },
+);
 
 export function GroupDetailView({
   group,
@@ -125,19 +157,10 @@ export function GroupDetailView({
           defaultPayerId={you?.id}
         />
 
-        <SpendingOverTimeCard
-          expenses={filteredExpenses}
-          groupCurrency={group.currency}
-        />
-
-        <CategoryBreakdownCard
-          expenses={breakdownExpenses}
-          categories={group.categories}
-          groupCurrency={group.currency}
-        />
-
-        <MemberContributionCard
-          expenses={memberContributionExpenses}
+        <ChartsSection
+          spendingExpenses={filteredExpenses}
+          breakdownExpenses={breakdownExpenses}
+          memberContributionExpenses={memberContributionExpenses}
           activeMembers={activeMembers}
           categories={group.categories}
           groupCurrency={group.currency}
