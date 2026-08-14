@@ -20,6 +20,22 @@ export function GroupDashboardSkeleton() {
 
         <Card>
           <CardHeader>
+            <Skeleton className="h-6 w-24" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Skeleton className="size-8 shrink-0 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <Skeleton className="h-6 w-32" />
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -73,6 +89,38 @@ export function GroupDashboardSkeleton() {
                     <Skeleton className="mt-1.5 h-3.5 w-1/2" />
                   </div>
                   <Skeleton className="h-5 w-14 shrink-0" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {[
+          "Spending over time",
+          "Spending by category",
+          "Member contributions",
+        ].map((title) => (
+          <div
+            key={title}
+            className="flex h-14 items-center rounded-xl bg-card px-4 ring-1 ring-foreground/10"
+          >
+            <Skeleton className="h-5 w-40" />
+          </div>
+        ))}
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-2 rounded-md px-2 py-2.5"
+                >
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-4 w-14" />
                 </div>
               ))}
             </div>
