@@ -64,6 +64,27 @@ const input = {
   avatarColor: "#111111",
 };
 
+// `member.findFirst` backs two different queries in addMember: the
+// membership check (where.userId is set) and the duplicate-email check
+// (where.email is set, no userId) — distinguish them by shape rather than
+// call order, since not every test path reaches the second one.
+function mockMemberFindFirst({
+  isMember = true,
+  duplicateEmailMember = null,
+}: {
+  isMember?: boolean;
+  duplicateEmailMember?: { id: string } | null;
+}) {
+  memberFindFirst.mockImplementation(
+    async ({ where }: { where: { userId?: string; email?: unknown } }) => {
+      if (where.userId !== undefined) {
+        return isMember ? { id: "mem_owner" } : null;
+      }
+      return duplicateEmailMember;
+    },
+  );
+}
+
 describe("addMember", () => {
   beforeEach(() => {
     getCachedSession.mockReset();
@@ -77,7 +98,7 @@ describe("addMember", () => {
     getCachedSession.mockResolvedValue(
       session({ id: "usr_owner", name: "Owner" }),
     );
-    memberFindFirst.mockResolvedValue({ id: "mem_owner" });
+    mockMemberFindFirst({});
   });
 
   it("links immediately and emails 'added' when the email matches an existing user", async () => {
@@ -180,5 +201,44 @@ describe("addMember", () => {
       prismaDataAccess.addMember("grp_1", input),
     ).rejects.toMatchObject({ code: "MEMBER_ALREADY_LINKED" });
     expect(sendAddedToGroupEmail).not.toHaveBeenCalled();
+  });
+
+  it("throws MEMBER_EMAIL_TAKEN when another active member already has this email, even unclaimed", async () => {
+    mockMemberFindFirst({ duplicateEmailMember: { id: "mem_existing" } });
+
+    await expect(
+      prismaDataAccess.addMember("grp_1", input),
+    ).rejects.toMatchObject({ code: "MEMBER_EMAIL_TAKEN" });
+    expect(userFindFirst).not.toHaveBeenCalled();
+    expect(memberCreate).not.toHaveBeenCalled();
+  });
+
+  it("matches the duplicate-email check case-insensitively", async () => {
+    mockMemberFindFirst({ duplicateEmailMember: { id: "mem_existing" } });
+
+    await expect(
+      prismaDataAccess.addMember("grp_1", { ...input, email: "SAM@Example.com" }),
+    ).rejects.toMatchObject({ code: "MEMBER_EMAIL_TAKEN" });
+  });
+
+  it("allows re-adding an email that only belongs to a removed (soft-deleted) member", async () => {
+    // duplicateEmailMember stays null because the mocked query itself
+    // filters deletedAt: null — nothing further to configure here beyond
+    // the default mockMemberFindFirst({}) from beforeEach.
+    userFindFirst.mockResolvedValue(null);
+    memberCreate.mockResolvedValue({
+      id: "mem_new",
+      groupId: "grp_1",
+      userId: null,
+      name: "Sam",
+      email: "sam@example.com",
+      avatarColor: "#111111",
+      deletedAt: null,
+    });
+    groupFindUniqueOrThrow.mockResolvedValue({ name: "Trip" });
+
+    await expect(
+      prismaDataAccess.addMember("grp_1", input),
+    ).resolves.toMatchObject({ id: "mem_new" });
   });
 });

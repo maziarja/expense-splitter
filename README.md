@@ -32,7 +32,7 @@ The whole app is explorable without an account: guest mode seeds 5 realistic gro
 | Currency API | ExchangeRate-API, DB-backed hourly cache with stale-fallback |
 | Charts (differentiator) | Recharts |
 | AI receipt scanning (differentiator) | Vercel AI SDK (`ai` + `@ai-sdk/openai`), OpenAI vision, Vercel Blob for image storage |
-| Testing | Vitest (240 tests — pure calculation/hook/data-layer logic; no e2e suite, by design — see [Known limitations](#known-limitations)) |
+| Testing | Vitest (263 tests — pure calculation/hook/data-layer logic; no e2e suite, by design — see [Known limitations](#known-limitations)) |
 | Package manager | Bun |
 
 ---
@@ -179,7 +179,7 @@ A few moments stand out where I redirected the approach rather than accepting th
 | **Performance**: fast load, smooth interactions, efficient calculations | 4/5 | Production Lighthouse Performance 97 (landing) / 93 (dashboard); optimistic expense creation for perceived <1s entry |
 | **Accessibility**: keyboard nav, screen reader support, contrast, currency announcements | 4/5 | Full WCAG contrast/keyboard/screen-reader/color-blind audit with real fixes; several items intentionally deferred and documented rather than silently skipped |
 | **Edge case handling**: empty states, errors, rounding, mixed currencies, split validation | 4/5 | Extensive sample-data edge cases covered; settlement overpayment and debt-cycle netting are documented, unfixed gaps |
-| **Code quality**: clean, maintainable, well-structured | 4/5 | Shared `DataAccess` interface kept guest/authenticated logic from diverging; 240 Vitest tests over pure logic |
+| **Code quality**: clean, maintainable, well-structured | 4/5 | Shared `DataAccess` interface kept guest/authenticated logic from diverging; 263 Vitest tests over pure logic |
 | **Landing page**: compelling, communicates value, visually polished | 5/5 | Production Lighthouse 97/100/100/100 |
 | **Guest experience**: immediately impressive, realistic data, full features | 5/5 | 5 groups, 43 expenses, every split type, mixed currencies, a mix of settled/outstanding debts |
 

@@ -16,11 +16,13 @@ function SettlementSuggestionRow({
   suggestion,
   membersById,
   currency,
+  canSettle,
 }: {
   groupId: string;
   suggestion: SettlementSuggestion;
   membersById: Map<string, Member>;
   currency: CurrencyCode;
+  canSettle: boolean;
 }) {
   const [isSettling, setIsSettling] = useState(false);
   const fromName = membersById.get(suggestion.from)?.name ?? "Unknown member";
@@ -39,27 +41,31 @@ function SettlementSuggestionRow({
         <span className="font-mono text-xs font-medium text-text-primary tabular-nums md:text-sm">
           {formatCurrency(suggestion.amount, currency)}
         </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsSettling(true)}
-          aria-label={`Settle up: ${fromName} owes ${toName} ${formatCurrency(suggestion.amount, currency)}`}
-        >
-          Settle up
-        </Button>
+        {canSettle && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsSettling(true)}
+            aria-label={`Settle up: ${fromName} owes ${toName} ${formatCurrency(suggestion.amount, currency)}`}
+          >
+            Settle up
+          </Button>
+        )}
       </div>
-      <RecordSettlementDialog
-        groupId={groupId}
-        from={suggestion.from}
-        to={suggestion.to}
-        fromName={fromName}
-        toName={toName}
-        amount={suggestion.amount}
-        currency={currency}
-        open={isSettling}
-        onOpenChange={setIsSettling}
-      />
+      {canSettle && (
+        <RecordSettlementDialog
+          groupId={groupId}
+          from={suggestion.from}
+          to={suggestion.to}
+          fromName={fromName}
+          toName={toName}
+          amount={suggestion.amount}
+          currency={currency}
+          open={isSettling}
+          onOpenChange={setIsSettling}
+        />
+      )}
     </li>
   );
 }
@@ -69,11 +75,15 @@ export function SettlementSuggestionsCard({
   settlementSuggestions,
   membersById,
   currency,
+  youId,
+  isOwner,
 }: {
   groupId: string;
   settlementSuggestions: SettlementSuggestion[];
   membersById: Map<string, Member>;
   currency: CurrencyCode;
+  youId?: string;
+  isOwner: boolean;
 }) {
   return (
     <Card>
@@ -107,6 +117,7 @@ export function SettlementSuggestionsCard({
                 suggestion={s}
                 membersById={membersById}
                 currency={currency}
+                canSettle={isOwner || s.from === youId || s.to === youId}
               />
             ))}
           </ul>

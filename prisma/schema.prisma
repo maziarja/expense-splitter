@@ -34,10 +34,11 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  memberships Member[]
-  preference  UserPreference?
-  sessions    Session[]
-  accounts    Account[]
+  memberships  Member[]
+  ownedGroups  Group[]
+  preference   UserPreference?
+  sessions     Session[]
+  accounts     Account[]
 
   @@map("user")
 }
@@ -108,9 +109,11 @@ model Group {
   name        String
   description String?
   currency    String   @db.VarChar(3)
+  ownerId     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  owner       User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   members     Member[]
   expenses    Expense[]
   settlements Settlement[]
@@ -182,7 +185,7 @@ model Expense {
   updatedAt DateTime           @updatedAt
 
   group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  paidBy Member  @relation("ExpensePaidBy", fields: [paidById], references: [id])
+  paidBy Member  @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
   splits Split[]
 
   @@index([groupId])
@@ -200,7 +203,7 @@ model Split {
   percentage Decimal? @db.Decimal(5, 2)
 
   expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  member  Member  @relation(fields: [memberId], references: [id])
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@unique([expenseId, memberId])
   @@index([memberId])
@@ -219,8 +222,8 @@ model Settlement {
   createdAt    DateTime @default(now())
 
   group Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  from  Member @relation("SettlementFrom", fields: [fromId], references: [id])
-  to    Member @relation("SettlementTo", fields: [toId], references: [id])
+  from  Member @relation("SettlementFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to    Member @relation("SettlementTo", fields: [toId], references: [id], onDelete: Cascade)
 
   @@index([groupId])
   @@index([fromId])

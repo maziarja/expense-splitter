@@ -14,10 +14,12 @@ export function MembersCard({
   groupId,
   members,
   youId,
+  isOwner,
 }: {
   groupId: string;
   members: Member[];
   youId?: string;
+  isOwner: boolean;
 }) {
   return (
     <Card>
@@ -45,14 +47,21 @@ export function MembersCard({
                     {member.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate text-xs text-text-primary md:text-sm">
-                  {member.name}
-                  {member.id === youId && (
-                    <span className="text-text-tertiary"> (You)</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-xs text-text-primary md:text-sm">
+                    {member.name}
+                    {member.id === youId && (
+                      <span className="text-text-tertiary"> (You)</span>
+                    )}
+                  </span>
+                  {member.email && (
+                    <span className="truncate text-[11px] text-text-tertiary md:text-xs">
+                      {member.email}
+                    </span>
                   )}
                 </span>
               </span>
-              {member.id !== youId && (
+              {isOwner && member.id !== youId && (
                 <RemoveMemberButton groupId={groupId} member={member} />
               )}
             </li>

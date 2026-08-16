@@ -18,13 +18,17 @@ export function GroupActionsMenu({
   group,
   hasExpenses,
   basePath,
+  isOwner,
 }: {
   group: Pick<Group, "id" | "name" | "description" | "currency">;
   hasExpenses: boolean;
   basePath: string;
+  isOwner: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  if (!isOwner) return null;
 
   return (
     <>

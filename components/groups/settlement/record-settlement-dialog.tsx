@@ -108,6 +108,8 @@ export function RecordSettlementDialog({
         setSubmitError(
           "This debt no longer exists — balances may have changed.",
         );
+      } else if (err instanceof DataAccessError) {
+        setSubmitError(err.message);
       } else {
         setSubmitError("Couldn't record the settlement. Please try again.");
       }

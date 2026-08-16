@@ -29,6 +29,7 @@ export type Group = {
   name: string;
   description: string | null;
   currency: CurrencyCode; // group default; balances are computed in this
+  ownerId: string | null;
   createdAt: string; // ISO 8601
   members: Member[];
 };

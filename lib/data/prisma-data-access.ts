@@ -80,6 +80,34 @@ async function requireGroupMembership(
   }
 }
 
+// A null ownerId (legacy groups from before this field existed, or a group
+// whose owner's account was later deleted) falls back to permissive rather
+// than locking everyone out, since there's no way to recover who should own
+// it and no transfer-ownership flow to fix it through.
+async function requireGroupOwnership(
+  client: PrismaLike,
+  groupId: string,
+  userId: string,
+): Promise<{ ownerId: string | null }> {
+  const group = await client.group.findFirst({
+    where: { id: groupId, members: { some: { userId, deletedAt: null } } },
+    select: { ownerId: true },
+  });
+  if (!group) {
+    throw new DataAccessError(
+      `Group "${groupId}" not found`,
+      "GROUP_NOT_FOUND",
+    );
+  }
+  if (group.ownerId !== null && group.ownerId !== userId) {
+    throw new DataAccessError(
+      "Only the group owner can do this",
+      "NOT_GROUP_OWNER",
+    );
+  }
+  return group;
+}
+
 function toMember(row: {
   id: string;
   groupId: string;
@@ -185,6 +213,7 @@ function toGroup(row: {
   name: string;
   description: string | null;
   currency: string;
+  ownerId: string | null;
   createdAt: Date;
 }): Group {
   return {
@@ -192,6 +221,7 @@ function toGroup(row: {
     name: row.name,
     description: row.description,
     currency: row.currency as CurrencyCode,
+    ownerId: row.ownerId,
     createdAt: row.createdAt.toISOString(),
     members: [],
   };
@@ -369,6 +399,7 @@ export const prismaDataAccess: DataAccess = {
         name: input.name,
         description: input.description ?? null,
         currency: input.currency,
+        owner: { connect: { id: user.id } },
         members: {
           create: {
             user: { connect: { id: user.id } },
@@ -384,7 +415,7 @@ export const prismaDataAccess: DataAccess = {
 
   async updateGroup(groupId, input) {
     const { id: userId } = await getSessionUser();
-    await requireGroupMembership(prisma, groupId, userId);
+    await requireGroupOwnership(prisma, groupId, userId);
     const group = await withNotFound(
       () =>
         prisma.group.update({
@@ -403,7 +434,7 @@ export const prismaDataAccess: DataAccess = {
 
   async deleteGroup(groupId) {
     const { id: userId } = await getSessionUser();
-    await requireGroupMembership(prisma, groupId, userId);
+    await requireGroupOwnership(prisma, groupId, userId);
     const { memberBalances } = await withNotFound(
       () => computeGroupBalances(prisma, groupId),
       "GROUP_NOT_FOUND",
@@ -421,6 +452,23 @@ export const prismaDataAccess: DataAccess = {
   async addMember(groupId, input) {
     const sessionUser = await getSessionUser();
     await requireGroupMembership(prisma, groupId, sessionUser.id);
+
+    if (input.email) {
+      const existingMember = await prisma.member.findFirst({
+        where: {
+          groupId,
+          deletedAt: null,
+          email: { equals: input.email, mode: "insensitive" },
+        },
+        select: { id: true },
+      });
+      if (existingMember) {
+        throw new DataAccessError(
+          "This email is already used by another member in this group",
+          "MEMBER_EMAIL_TAKEN",
+        );
+      }
+    }
 
     const matchedUser = input.email
       ? await prisma.user.findFirst({
@@ -481,7 +529,7 @@ export const prismaDataAccess: DataAccess = {
   async removeMember(groupId, memberId) {
     const { id: userId } = await getSessionUser();
     await prisma.$transaction(async (tx) => {
-      await requireGroupMembership(tx, groupId, userId);
+      const { ownerId } = await requireGroupOwnership(tx, groupId, userId);
       const member = await tx.member.findFirst({
         where: { id: memberId, groupId },
       });
@@ -492,6 +540,13 @@ export const prismaDataAccess: DataAccess = {
         );
       }
       if (member.deletedAt) return;
+
+      if (ownerId !== null && member.userId === ownerId) {
+        throw new DataAccessError(
+          "The group owner can't remove themselves",
+          "OWNER_CANNOT_REMOVE_SELF",
+        );
+      }
 
       const { memberBalances } = await computeGroupBalances(tx, groupId);
       const balance = memberBalances.find((b) => b.memberId === memberId);
@@ -635,7 +690,33 @@ export const prismaDataAccess: DataAccess = {
   async createSettlement(groupId, input) {
     const { id: userId } = await getSessionUser();
     return prisma.$transaction(async (tx) => {
-      await requireGroupMembership(tx, groupId, userId);
+      const group = await tx.group.findFirst({
+        where: { id: groupId, members: { some: { userId, deletedAt: null } } },
+        select: {
+          ownerId: true,
+          members: {
+            where: { userId, deletedAt: null },
+            select: { id: true },
+          },
+        },
+      });
+      if (!group) {
+        throw new DataAccessError(
+          `Group "${groupId}" not found`,
+          "GROUP_NOT_FOUND",
+        );
+      }
+      const isOwner = group.ownerId === null || group.ownerId === userId;
+      const callerMemberId = group.members[0]?.id;
+      const isParty =
+        callerMemberId === input.from || callerMemberId === input.to;
+      if (!isOwner && !isParty) {
+        throw new DataAccessError(
+          "You can only settle debts you're part of",
+          "NOT_SETTLEMENT_PARTY",
+        );
+      }
+
       const { settlementSuggestions } = await withNotFound(
         () => computeGroupBalances(tx, groupId),
         "GROUP_NOT_FOUND",

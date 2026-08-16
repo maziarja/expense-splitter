@@ -69,6 +69,10 @@ export function GroupDetailView({
   const membersById = new Map(group.members.map((m) => [m.id, m] as const));
   const totalSpent = calculateTotalSpent(group.expenses, group.currency);
   const yourBalance = group.memberBalances.find((b) => b.memberId === you?.id);
+  // A null ownerId (legacy group, or an owner whose account was later
+  // deleted) falls back to permissive rather than locking everyone out —
+  // mirrors requireGroupOwnership in lib/data/prisma-data-access.ts.
+  const isOwner = group.ownerId === null || group.ownerId === you?.userId;
 
   const breakdownExpenses = filterExpenses(group.expenses, {
     ...filters,
@@ -99,6 +103,7 @@ export function GroupDetailView({
                   }}
                   hasExpenses={group.expenses.length > 0}
                   basePath={basePath}
+                  isOwner={isOwner}
                 />
               </div>
             </div>
@@ -126,6 +131,7 @@ export function GroupDetailView({
           groupId={groupId}
           members={activeMembers}
           youId={you?.id}
+          isOwner={isOwner}
         />
 
         {you && (
@@ -180,6 +186,8 @@ export function GroupDetailView({
           settlementSuggestions={group.settlementSuggestions}
           membersById={membersById}
           currency={group.currency}
+          youId={you?.id}
+          isOwner={isOwner}
         />
       </div>
     </div>

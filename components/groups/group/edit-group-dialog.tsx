@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { updateGroupInputSchema } from "@/lib/data/data-access";
+import { DataAccessError, updateGroupInputSchema } from "@/lib/data/data-access";
 import {
   useDataAccessContext,
   useDataAccessRefresh,
@@ -69,8 +69,12 @@ export function EditGroupDialog({
       await dataAccess.updateGroup(group.id, values);
       onOpenChange(false);
       refresh();
-    } catch {
-      setSubmitError("Couldn't save changes. Please try again.");
+    } catch (err) {
+      setSubmitError(
+        err instanceof DataAccessError
+          ? err.message
+          : "Couldn't save changes. Please try again.",
+      );
     }
   }
 

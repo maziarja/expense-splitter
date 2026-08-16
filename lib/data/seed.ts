@@ -40,6 +40,7 @@ function toGuestGroup(raw: RawGroup): GuestGroup {
     name: raw.name,
     description: raw.description,
     currency: raw.currency as CurrencyCode,
+    ownerId: null,
     createdAt: raw.createdAt,
     members: raw.members.map((member) => toMember(member, raw.id)),
     expenses: raw.expenses,

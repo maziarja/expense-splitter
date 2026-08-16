@@ -108,6 +108,7 @@ export function createGroup(data: GuestData, input: CreateGroupInput) {
     name: input.name,
     description: input.description ?? null,
     currency: input.currency,
+    ownerId: null,
     createdAt: new Date().toISOString(),
     members: [],
     expenses: [],

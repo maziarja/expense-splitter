@@ -47,6 +47,8 @@ export function RemoveMemberButton({
         setError(
           `${member.name} has an outstanding balance and can't be removed until it's settled.`,
         );
+      } else if (err instanceof DataAccessError) {
+        setError(err.message);
       } else {
         setError("Couldn't remove this member. Please try again.");
       }

@@ -46,6 +46,8 @@ export function DeleteGroupDialog({
         setError(
           "This group has unsettled balances and can't be deleted until everyone's settled up.",
         );
+      } else if (err instanceof DataAccessError) {
+        setError(err.message);
       } else {
         setError("Couldn't delete this group. Please try again.");
       }

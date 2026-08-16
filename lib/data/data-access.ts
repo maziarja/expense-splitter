@@ -65,13 +65,17 @@ export type DataAccessErrorCode =
   | "GROUP_NOT_FOUND"
   | "MEMBER_NOT_FOUND"
   | "MEMBER_ALREADY_LINKED"
+  | "MEMBER_EMAIL_TAKEN"
   | "EXPENSE_NOT_FOUND"
   | "MEMBER_HAS_BALANCE"
   | "GROUP_NOT_SETTLED"
   | "NO_DEBT_EXISTS"
   | "CATEGORY_NAME_TAKEN"
   | "CATEGORY_NOT_FOUND"
-  | "UNAUTHENTICATED";
+  | "UNAUTHENTICATED"
+  | "NOT_GROUP_OWNER"
+  | "OWNER_CANNOT_REMOVE_SELF"
+  | "NOT_SETTLEMENT_PARTY";
 
 export class DataAccessError extends Error {
   constructor(
