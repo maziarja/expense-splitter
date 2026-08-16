@@ -64,6 +64,7 @@ export const createCategoryInputSchema = z.object({
 export type DataAccessErrorCode =
   | "GROUP_NOT_FOUND"
   | "MEMBER_NOT_FOUND"
+  | "MEMBER_ALREADY_LINKED"
   | "EXPENSE_NOT_FOUND"
   | "MEMBER_HAS_BALANCE"
   | "GROUP_NOT_SETTLED"

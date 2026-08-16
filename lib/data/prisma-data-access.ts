@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { getCachedSession } from "../auth";
+import { sendAddedToGroupEmail, sendGroupInviteEmail } from "../email";
 import { prisma } from "../prisma";
 import { calculateBalances } from "../splits/balance";
 import {
@@ -418,21 +419,62 @@ export const prismaDataAccess: DataAccess = {
   },
 
   async addMember(groupId, input) {
-    const { id: userId } = await getSessionUser();
-    await requireGroupMembership(prisma, groupId, userId);
-    const member = await withNotFound(
-      () =>
-        prisma.member.create({
-          data: {
-            group: { connect: { id: groupId } },
-            name: input.name,
-            email: input.email ?? null,
-            avatarColor: input.avatarColor,
-          },
-        }),
-      "GROUP_NOT_FOUND",
-      `Group "${groupId}" not found`,
-    );
+    const sessionUser = await getSessionUser();
+    await requireGroupMembership(prisma, groupId, sessionUser.id);
+
+    const matchedUser = input.email
+      ? await prisma.user.findFirst({
+          where: { email: { equals: input.email, mode: "insensitive" } },
+          select: { id: true, email: true },
+        })
+      : null;
+
+    let member;
+    try {
+      member = await withNotFound(
+        () =>
+          prisma.member.create({
+            data: {
+              group: { connect: { id: groupId } },
+              ...(matchedUser
+                ? { user: { connect: { id: matchedUser.id } } }
+                : {}),
+              name: input.name,
+              email: input.email ?? null,
+              avatarColor: input.avatarColor,
+            },
+          }),
+        "GROUP_NOT_FOUND",
+        `Group "${groupId}" not found`,
+      );
+    } catch (err) {
+      if (
+        matchedUser &&
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002"
+      ) {
+        throw new DataAccessError(
+          "This person is already in the group",
+          "MEMBER_ALREADY_LINKED",
+        );
+      }
+      throw err;
+    }
+
+    if (input.email) {
+      const group = await prisma.group.findUniqueOrThrow({
+        where: { id: groupId },
+        select: { name: true },
+      });
+      const emailArgs = { groupName: group.name, inviterName: sessionUser.name };
+      const sendEmail = matchedUser
+        ? sendAddedToGroupEmail(matchedUser.email, { ...emailArgs, groupId })
+        : sendGroupInviteEmail(input.email, emailArgs);
+      await sendEmail.catch((err) =>
+        console.error("Failed to send member notification email", err),
+      );
+    }
+
     return toMember(member);
   },
 

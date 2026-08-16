@@ -5,7 +5,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
-import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
+import {
+  sendAddedToGroupEmail,
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from "@/lib/email";
+import { claimUnclaimedMemberships } from "@/lib/members/claim";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -18,6 +23,28 @@ export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
       await sendVerificationEmail(user.email, url);
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        // Links any group memberships this person was added to by email
+        // before they had an account — including ones added long before
+        // this feature shipped, since claimUnclaimedMemberships looks at
+        // every unclaimed Member row, not just recent ones.
+        after: async (user) => {
+          const claimed = await claimUnclaimedMemberships(prisma, user);
+          for (const group of claimed) {
+            await sendAddedToGroupEmail(user.email, {
+              groupName: group.groupName,
+              groupId: group.groupId,
+              inviterName: null,
+            }).catch((err) =>
+              console.error("Failed to send added-to-group email", err),
+            );
+          }
+        },
+      },
     },
   },
   plugins: [nextCookies()], // must stay last

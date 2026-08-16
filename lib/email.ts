@@ -71,3 +71,45 @@ export async function sendPasswordResetEmail(to: string, url: string) {
     }),
   });
 }
+
+export async function sendAddedToGroupEmail(
+  to: string,
+  {
+    groupName,
+    groupId,
+    inviterName,
+  }: { groupName: string; groupId: string; inviterName?: string | null },
+) {
+  const url = `${process.env.BETTER_AUTH_URL}/dashboard/${groupId}`;
+  const who = inviterName ? `${inviterName} added you` : "You've been added";
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to,
+    subject: `You're in "${groupName}" on Expense Splitter`,
+    html: renderAuthEmail({
+      heading: `You're in "${groupName}"`,
+      body: `${who} to "${groupName}" on Expense Splitter. Open the group to see expenses and balances.`,
+      ctaLabel: "Open group",
+      ctaUrl: url,
+    }),
+  });
+}
+
+export async function sendGroupInviteEmail(
+  to: string,
+  { groupName, inviterName }: { groupName: string; inviterName?: string | null },
+) {
+  const url = `${process.env.BETTER_AUTH_URL}/sign-up`;
+  const who = inviterName ? `${inviterName} added you` : "You've been added";
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to,
+    subject: `You've been added to "${groupName}" on Expense Splitter`,
+    html: renderAuthEmail({
+      heading: `Join "${groupName}" on Expense Splitter`,
+      body: `${who} to "${groupName}" on Expense Splitter. Sign up with this email address to see the group's expenses and balances.`,
+      ctaLabel: "Create your account",
+      ctaUrl: url,
+    }),
+  });
+}

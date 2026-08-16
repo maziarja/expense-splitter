@@ -28,6 +28,7 @@ import {
   useDataAccessContext,
   useDataAccessRefresh,
 } from "@/lib/data/data-access-context";
+import { DataAccessError } from "@/lib/data/data-access";
 import type { Member } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
@@ -71,8 +72,12 @@ export function AddMemberDialog({
       });
       setOpen(false);
       refresh();
-    } catch {
-      setSubmitError("Couldn't add the member. Please try again.");
+    } catch (err) {
+      setSubmitError(
+        err instanceof DataAccessError
+          ? err.message
+          : "Couldn't add the member. Please try again.",
+      );
     }
   }
 
