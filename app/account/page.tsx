@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
+import { DeleteAccountDialog } from "@/components/account/delete-account-dialog";
 import { PreferencesForm } from "@/components/account/preferences-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +49,19 @@ export default async function AccountPage() {
               defaultCurrency={preference.defaultCurrency}
               notificationsEnabled={preference.notificationsEnabled}
             />
+          </CardContent>
+        </Card>
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-base text-destructive" asChild>
+              <h2>Danger zone</h2>
+            </CardTitle>
+            <CardDescription>
+              Permanently delete your account. This can&apos;t be undone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DeleteAccountDialog />
           </CardContent>
         </Card>
       </div>

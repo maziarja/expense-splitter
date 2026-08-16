@@ -25,6 +25,11 @@ export const auth = betterAuth({
       await sendVerificationEmail(user.email, url);
     },
   },
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
+  },
   databaseHooks: {
     user: {
       create: {
