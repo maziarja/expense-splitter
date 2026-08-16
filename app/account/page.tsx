@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { DeleteAccountDialog } from "@/components/account/delete-account-dialog";
 import { PreferencesForm } from "@/components/account/preferences-form";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,46 +25,50 @@ export default async function AccountPage() {
   const preference = await getUserPreference(session.user.id);
 
   return (
-    <main
-      id="main-content"
-      className="flex flex-1 items-center justify-center bg-bg-primary p-8"
-    >
-      <div className="w-full max-w-sm space-y-4">
+    <main id="main-content" className="flex flex-1 flex-col bg-bg-primary">
+      <header className="flex items-center gap-3 border-b border-border-subtle px-4 py-3">
         <Button asChild variant="ghost" size="sm" className="gap-1.5">
           <Link href="/dashboard">
             <ArrowLeftIcon aria-hidden="true" />
             Back to dashboard
           </Link>
         </Button>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base" asChild>
-              <h1>Preferences</h1>
-            </CardTitle>
-            <CardDescription>
-              Defaults applied across your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PreferencesForm
-              defaultCurrency={preference.defaultCurrency}
-              notificationsEnabled={preference.notificationsEnabled}
-            />
-          </CardContent>
-        </Card>
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle className="text-base text-destructive" asChild>
-              <h2>Danger zone</h2>
-            </CardTitle>
-            <CardDescription>
-              Permanently delete your account. This can&apos;t be undone.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DeleteAccountDialog />
-          </CardContent>
-        </Card>
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
+      </header>
+      <div className="flex flex-1 items-center justify-center p-8">
+        <div className="w-full max-w-sm space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base" asChild>
+                <h1>Preferences</h1>
+              </CardTitle>
+              <CardDescription>
+                Defaults applied across your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PreferencesForm
+                defaultCurrency={preference.defaultCurrency}
+                notificationsEnabled={preference.notificationsEnabled}
+              />
+            </CardContent>
+          </Card>
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle className="text-base text-destructive" asChild>
+                <h2>Danger zone</h2>
+              </CardTitle>
+              <CardDescription>
+                Permanently delete your account. This can&apos;t be undone.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DeleteAccountDialog />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
   );
