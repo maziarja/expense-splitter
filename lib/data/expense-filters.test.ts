@@ -1,3 +1,4 @@
+import { endOfDay, parseISO, startOfDay } from "date-fns";
 import { describe, expect, it } from "vitest";
 import {
   emptyExpenseFilters,
@@ -115,6 +116,92 @@ describe("filterExpenses", () => {
       dateTo: "2026-01-31",
     });
     expect(result).toEqual([boundary]);
+  });
+
+  it("excludes an expense that falls just outside the range boundary", () => {
+    const rangeStart = startOfDay(parseISO("2026-01-31"));
+    const rangeEnd = endOfDay(parseISO("2026-01-31"));
+    const justBefore = makeExpense({
+      id: "just-before",
+      date: new Date(rangeStart.getTime() - 1).toISOString(),
+    });
+    const justAfter = makeExpense({
+      id: "just-after",
+      date: new Date(rangeEnd.getTime() + 1).toISOString(),
+    });
+    const result = filterExpenses([justBefore, justAfter], {
+      ...emptyExpenseFilters,
+      dateFrom: "2026-01-31",
+      dateTo: "2026-01-31",
+    });
+    expect(result).toEqual([]);
+  });
+
+  it("matches nothing for an inverted range (dateFrom after dateTo)", () => {
+    const result = filterExpenses(expenses, {
+      ...emptyExpenseFilters,
+      dateFrom: "2026-02-01",
+      dateTo: "2026-01-01",
+    });
+    expect(result).toEqual([]);
+  });
+
+  it("combines includesMember with paidBy, category, and a date range individually", () => {
+    expect(
+      filterExpenses(expenses, {
+        ...emptyExpenseFilters,
+        includesMember: "mem_jordan",
+        paidBy: "mem_jordan",
+      }),
+    ).toEqual([taxi]);
+
+    expect(
+      filterExpenses(expenses, {
+        ...emptyExpenseFilters,
+        includesMember: "mem_alex",
+        category: "Food & Drink",
+      }),
+    ).toEqual([dinner]);
+
+    expect(
+      filterExpenses(expenses, {
+        ...emptyExpenseFilters,
+        includesMember: "mem_sam",
+        dateFrom: "2026-02-01",
+        dateTo: "2026-02-28",
+      }),
+    ).toEqual([taxi]);
+  });
+
+  it("composes includesMember and paidBy independently rather than treating them as the same check", () => {
+    // mem_jordan is a split participant on `dinner` without being its payer —
+    // includesMember + the real payer (mem_alex) should still match.
+    const matchesRealPayer = filterExpenses(expenses, {
+      ...emptyExpenseFilters,
+      includesMember: "mem_jordan",
+      paidBy: "mem_alex",
+    });
+    expect(matchesRealPayer).toEqual([dinner]);
+
+    // Same includesMember, but a paidBy that no expense actually has —
+    // AND semantics mean neither expense should match.
+    const noMatch = filterExpenses(expenses, {
+      ...emptyExpenseFilters,
+      includesMember: "mem_jordan",
+      paidBy: "mem_sam",
+    });
+    expect(noMatch).toEqual([]);
+  });
+
+  it("returns nothing when every filter is active but no expense matches all of them", () => {
+    const result = filterExpenses(expenses, {
+      category: "Food & Drink",
+      paidBy: "mem_alex",
+      includesMember: "mem_sam",
+      dateFrom: "2026-01-01",
+      dateTo: "2026-01-31",
+    });
+    expect(result).toEqual([]);
   });
 
   it("combines category, date range, and paid-by together (AND), matching the spec's own example", () => {

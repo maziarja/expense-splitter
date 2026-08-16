@@ -87,6 +87,54 @@ describe("buildExpenseWhere", () => {
     });
   });
 
+  it("combines category and paidBy without a date range or includesMember", () => {
+    const filters: ExpenseFilterState = {
+      ...emptyExpenseFilters,
+      category: "Transport",
+      paidBy: "mem_jordan",
+    };
+    expect(buildExpenseWhere("grp_1", filters)).toEqual({
+      groupId: "grp_1",
+      category: "Transport",
+      paidById: "mem_jordan",
+    });
+  });
+
+  it("combines includesMember and a date range without category or paidBy", () => {
+    const filters: ExpenseFilterState = {
+      ...emptyExpenseFilters,
+      includesMember: "mem_sam",
+      dateFrom: "2026-01-01",
+      dateTo: "2026-01-31",
+    };
+    expect(buildExpenseWhere("grp_1", filters)).toEqual({
+      groupId: "grp_1",
+      splits: { some: { memberId: "mem_sam" } },
+      date: {
+        gte: startOfDay(parseISO("2026-01-01")),
+        lte: endOfDay(parseISO("2026-01-31")),
+      },
+    });
+  });
+
+  it("still builds gte/lte for an inverted range (dateFrom after dateTo) rather than silently dropping it", () => {
+    // Prisma resolves gte > lte to zero matching rows on its own — this just
+    // confirms buildExpenseWhere passes the range through as-is instead of
+    // validating or reordering it.
+    const filters: ExpenseFilterState = {
+      ...emptyExpenseFilters,
+      dateFrom: "2026-02-01",
+      dateTo: "2026-01-01",
+    };
+    expect(buildExpenseWhere("grp_1", filters)).toEqual({
+      groupId: "grp_1",
+      date: {
+        gte: startOfDay(parseISO("2026-02-01")),
+        lte: endOfDay(parseISO("2026-01-01")),
+      },
+    });
+  });
+
   it("combines every filter together", () => {
     const filters: ExpenseFilterState = {
       category: "Food & Drink",

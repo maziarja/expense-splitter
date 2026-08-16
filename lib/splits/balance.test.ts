@@ -165,6 +165,213 @@ describe("calculateBalances", () => {
     );
     expect(new Set(pairKeys).size).toBe(pairKeys.length);
   });
+
+  it("emits a suggestion per pairwise debt in a 3-way cycle, even though every member's net balance is zero", () => {
+    // a owes b, b owes c, c owes a — each member's net is exactly zero, but
+    // the suggestion engine works off the pairwise ledger, not net balances,
+    // so it still reports 3 separate suggestions rather than collapsing the
+    // cycle. Documenting the real behavior, not asserting it's the ideal one.
+    const { memberBalances, settlementSuggestions } = calculateBalances({
+      memberIds: ["a", "b", "c"],
+      expenses: [
+        {
+          paidBy: "b",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "a", amount: 30 }],
+        },
+        {
+          paidBy: "c",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "b", amount: 30 }],
+        },
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "c", amount: 30 }],
+        },
+      ],
+      settlements: [],
+      groupCurrency: "USD",
+    });
+
+    expect(memberBalances.every((b) => b.isSettled)).toBe(true);
+    expect(settlementSuggestions).toHaveLength(3);
+    expect(
+      settlementSuggestions.map((s) => `${s.from}->${s.to}:${s.amount}`).sort(),
+    ).toEqual(["a->b:30", "b->c:30", "c->a:30"]);
+  });
+
+  it("suggests separate settlements when one debtor owes multiple creditors", () => {
+    const { memberBalances, settlementSuggestions } = calculateBalances({
+      memberIds: ["a", "b", "c"],
+      expenses: [
+        {
+          paidBy: "b",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "a", amount: 20 }],
+        },
+        {
+          paidBy: "c",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "a", amount: 15 }],
+        },
+      ],
+      settlements: [],
+      groupCurrency: "USD",
+    });
+
+    expect(memberBalances.find((b) => b.memberId === "a")?.netBalance).toBe(
+      -35,
+    );
+    expect(settlementSuggestions).toEqual(
+      expect.arrayContaining([
+        { from: "a", to: "b", amount: 20 },
+        { from: "a", to: "c", amount: 15 },
+      ]),
+    );
+    expect(settlementSuggestions).toHaveLength(2);
+  });
+
+  it("orders suggestions by the sorted-member-id pair iteration, not by amount", () => {
+    const { settlementSuggestions } = calculateBalances({
+      memberIds: ["abe", "bob", "cat", "zed"],
+      expenses: [
+        // bob owes cat a large amount
+        {
+          paidBy: "cat",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "bob", amount: 50 }],
+        },
+        // abe owes zed a small amount — alphabetically first pair, but the
+        // larger amount belongs to the pair that sorts later.
+        {
+          paidBy: "zed",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "abe", amount: 5 }],
+        },
+      ],
+      settlements: [],
+      groupCurrency: "USD",
+    });
+
+    expect(settlementSuggestions).toEqual([
+      { from: "abe", to: "zed", amount: 5 },
+      { from: "bob", to: "cat", amount: 50 },
+    ]);
+  });
+
+  it("returns all-zero balances and no suggestions for a group with no expenses or settlements", () => {
+    const { memberBalances, settlementSuggestions } = calculateBalances({
+      memberIds: ["a", "b", "c"],
+      expenses: [],
+      settlements: [],
+      groupCurrency: "USD",
+    });
+
+    expect(memberBalances).toEqual([
+      { memberId: "a", netBalance: 0, isSettled: true },
+      { memberId: "b", netBalance: 0, isSettled: true },
+      { memberId: "c", netBalance: 0, isSettled: true },
+    ]);
+    expect(settlementSuggestions).toEqual([]);
+  });
+
+  it("doesn't crash on a single-member group", () => {
+    const { memberBalances, settlementSuggestions } = calculateBalances({
+      memberIds: ["a"],
+      expenses: [],
+      settlements: [],
+      groupCurrency: "USD",
+    });
+
+    expect(memberBalances).toEqual([
+      { memberId: "a", netBalance: 0, isSettled: true },
+    ]);
+    expect(settlementSuggestions).toEqual([]);
+  });
+
+  it("keeps multiple near-threshold pairwise residuals independently classified", () => {
+    const { memberBalances, settlementSuggestions } = calculateBalances({
+      memberIds: ["a", "b", "c"],
+      expenses: [
+        // b owes a $0.01 — negligible, no suggestion.
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "b", amount: 0.01 }],
+        },
+        // c owes a $0.02 — real, gets a suggestion.
+        {
+          paidBy: "a",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "c", amount: 0.02 }],
+        },
+        // c owes b $0.01 — negligible, no suggestion.
+        {
+          paidBy: "b",
+          currency: "USD",
+          exchangeRate: 1,
+          splits: [{ memberId: "c", amount: 0.01 }],
+        },
+      ],
+      settlements: [],
+      groupCurrency: "USD",
+    });
+
+    expect(memberBalances).toEqual(
+      expect.arrayContaining([
+        { memberId: "a", netBalance: 0.03, isSettled: false },
+        { memberId: "b", netBalance: 0, isSettled: true },
+        { memberId: "c", netBalance: -0.03, isSettled: false },
+      ]),
+    );
+    expect(settlementSuggestions).toEqual([
+      { from: "c", to: "a", amount: 0.02 },
+    ]);
+  });
+
+  it("converges expenses and settlements in different currencies into one correct suggested amount", () => {
+    const { memberBalances, settlementSuggestions } = calculateBalances({
+      memberIds: ["a", "b"],
+      expenses: [
+        // EUR expense: b owes a 100 * 1.1 = $110.
+        {
+          paidBy: "a",
+          currency: "EUR",
+          exchangeRate: 1.1,
+          splits: [{ memberId: "b", amount: 100 }],
+        },
+      ],
+      settlements: [
+        // GBP settlement: b pays a 50 * 0.9 = $45 towards that debt.
+        {
+          from: "b",
+          to: "a",
+          currency: "GBP",
+          exchangeRate: 0.9,
+          amount: 50,
+        },
+      ],
+      groupCurrency: "USD",
+    });
+
+    expect(memberBalances).toEqual(
+      expect.arrayContaining([
+        { memberId: "a", netBalance: 65, isSettled: false },
+        { memberId: "b", netBalance: -65, isSettled: false },
+      ]),
+    );
+    expect(settlementSuggestions).toEqual([{ from: "b", to: "a", amount: 65 }]);
+  });
 });
 
 describe("calculateTotalSpent", () => {

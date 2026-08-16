@@ -95,6 +95,57 @@ describe("fetchLatestRates", () => {
     });
   });
 
+  it("throws invalid-response when the API key or base URL isn't configured", async () => {
+    vi.unstubAllEnvs();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchLatestRates("USD")).rejects.toMatchObject({
+      code: "invalid-response",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to invalid-response for an error-type the API hasn't documented", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          result: "error",
+          "error-type": "some-new-error-type",
+        }),
+      ),
+    );
+
+    await expect(fetchLatestRates("USD")).rejects.toMatchObject({
+      code: "invalid-response",
+    });
+  });
+
+  it("throws invalid-response when a supported currency is missing from conversion_rates", async () => {
+    const conversionRates: Record<string, number> = {};
+    for (const currency of SUPPORTED_CURRENCIES) {
+      if (currency === "JPY") continue;
+      conversionRates[currency] = 1;
+    }
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          result: "success",
+          base_code: "USD",
+          time_last_update_unix: 1690848001,
+          conversion_rates: conversionRates,
+        }),
+      ),
+    );
+
+    await expect(fetchLatestRates("USD")).rejects.toMatchObject({
+      code: "invalid-response",
+    });
+  });
+
   it("throws invalid-response on an unexpected success-like shape", async () => {
     vi.stubGlobal(
       "fetch",
