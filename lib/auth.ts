@@ -11,6 +11,7 @@ import {
   sendVerificationEmail,
 } from "@/lib/email";
 import { claimUnclaimedMemberships } from "@/lib/members/claim";
+import { removeUserMemberships } from "@/lib/members/remove";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -48,6 +49,15 @@ export const auth = betterAuth({
               console.error("Failed to send added-to-group email", err),
             );
           }
+        },
+      },
+      delete: {
+        // Must run before, not after: by the time an "after" hook fires,
+        // the Member.userId SetNull cascade has already run, so these rows
+        // could no longer be found by userId.
+        before: async (user) => {
+          await removeUserMemberships(prisma, user.id);
+          return true;
         },
       },
     },
