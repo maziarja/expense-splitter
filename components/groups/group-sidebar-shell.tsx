@@ -61,9 +61,15 @@ export function GroupSidebarShell({
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="gap-3 px-3 py-3">
-        <span className="truncate text-sm font-bold text-text-primary group-data-[collapsible=icon]:hidden">
+        <Link
+          href={basePath}
+          className="truncate rounded-sm text-sm font-bold text-text-primary group-data-[collapsible=icon]:hidden"
+          onClick={() => {
+            if (isMobile) setOpenMobile(false);
+          }}
+        >
           Expense Splitter
-        </span>
+        </Link>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
